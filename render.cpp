@@ -20,15 +20,7 @@ Scope gScope;
 // Oscillator objects
 Wavetable gSineOscillator, gSawtoothOscillator;
 
-// Filter objects
-MoogVcf gFilter;
-
-// filter configs mapped to int values for use with the slider
-std::map<int, std::string> gConfigs { {1, "lp4"}, {2, "lp2"}, {3, "bp4"}, {4, "bp2"}, {5, "hp4"},{6, "hp2"}};
-
-//debug for filter types
-// std::vector<float> ogains_orig, ogains;
-
+//Woooooooooo
 bool setup(BelaContext *context, void *userData)
 {
 	std::vector<float> wavetable;
