@@ -20,7 +20,7 @@ Scope gScope;
 // Oscillator objects
 Wavetable gSineOscillator, gSawtoothOscillator;
 
-//Woooooooooo
+//Test push from Bela VSCode
 bool setup(BelaContext *context, void *userData)
 {
 	std::vector<float> wavetable;
