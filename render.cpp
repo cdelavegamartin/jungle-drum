@@ -24,9 +24,9 @@ Wavetable gSineOscillator, gSawtoothOscillator;
 Resonator gResonator;
 
 // White noise var for testing
-gNoiseLength = 10; // ms
-gNoiseInterval = 1000; //ms
-gNoiseOn = 0;
+float gNoiseLength = 10; // ms
+float gNoiseInterval = 1000; //ms
+float gNoiseOn = 0;
 
 //Test push from Bela VSCode
 bool setup(BelaContext *context, void *userData)
