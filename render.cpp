@@ -20,6 +20,14 @@ Scope gScope;
 // Oscillator objects
 Wavetable gSineOscillator, gSawtoothOscillator;
 
+//resonator objects
+Resonator gResonator;
+
+// White noise var for testing
+gNoiseLength = 10; // ms
+gNoiseInterval = 1000; //ms
+gNoiseOn = 0;
+
 //Test push from Bela VSCode
 bool setup(BelaContext *context, void *userData)
 {
@@ -46,7 +54,7 @@ bool setup(BelaContext *context, void *userData)
 	gSineOscillator.setup(context->audioSampleRate, wavetable);
 
 	// Initialize the filter
-	gFilter.setup(context->audioSampleRate, 1000.0, 0.0,"lp4",false);
+	gResonator.setup(context->audioSampleRate, 1000.0, 0.9);
 	
 	// Debug for filter types
 	// ogains_orig = gFilter.getFilterConfiguration();
@@ -62,9 +70,9 @@ bool setup(BelaContext *context, void *userData)
 	// Create sliders for oscillator and filter settings
 	gGuiController.addSlider("Oscillator Frequency", 3000, 2000, 5000, 200);
 	gGuiController.addSlider("Oscillator Amplitude", 0.1, 0, 2.0, 0.1);
-	gGuiController.addSlider("Filter Frequency", 1000, 500, 5000, 500);
-	gGuiController.addSlider("Filter Resonance", 0.9, 0.0, 1.1, 0.1);
-	gGuiController.addSlider("Filter Type", 1, 1, 6, 1);
+	gGuiController.addSlider("Resonator Frequency", 1000, 500, 5000, 500);
+	gGuiController.addSlider("Resonator Decay", 0.9, 0.0, 1.0, 0.05);
+	
 	
 	
 	// Set up the scope
@@ -78,38 +86,29 @@ void render(BelaContext *context, void *userData)
 	// Read the slider values
 	float oscFrequency = gGuiController.getSliderValue(0);	
 	float oscAmplitude = gGuiController.getSliderValue(1);
-	float filterFrequency = gGuiController.getSliderValue(2);
-	float filterResonance = gGuiController.getSliderValue(3);
-	float filterType = gGuiController.getSliderValue(4);
+	float resFrequency = gGuiController.getSliderValue(2);
+	float resDecay = gGuiController.getSliderValue(3);
+	
 
 	// Set the oscillator frequency
 	gSineOscillator.setFrequency(oscFrequency);
 	gSawtoothOscillator.setFrequency(oscFrequency);
 
 	// Set cutoff frequency for the filter
-	gFilter.setFrequencyHz(filterFrequency);
+	gResonator.setFrequencyHz(resFrequency);
 	
 	// Set resonance for the filter
-	gFilter.setResonance(filterResonance);
+	gResonator.setDecay(resDecay);
 	
-	// Set filter type (output gains)
-	gFilter.setFilterConfiguration(gConfigs[(int)filterType]);
-	
-	// Get filter type for debug (output gains)
-	// ogains = gFilter.getFilterConfiguration();
-	// if (ogains != ogains_orig){
-	// 	ogains_orig = ogains;
-	// 	for (auto i: ogains){
-	// 		std::cout << i << ' ' << std::endl;
-	// 	}		
-	// }
-
-    
 	
     for(unsigned int n = 0; n < context->audioFrames; n++) {
     	// Uncomment one line or the other to choose sine or sawtooth oscillator
 		float in = oscAmplitude * gSineOscillator.process();
 		// float in = oscAmplitude * gSawtoothOscillator.process();
+
+		if(1000*gSampleCounter/context->audioSampleRate>gNoise){
+		// Generate white noise: random values between -1 and 1
+		float noise = 2.0 * (float)rand() / (float)RAND_MAX - 1.0;
 
 		// Process the input with the filter
 		float out = gFilter.process(in);
