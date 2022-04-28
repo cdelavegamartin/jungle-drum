@@ -1,2 +1,5 @@
-# Exclude build folders
+# Build folders
 build/
+
+#VSCode configs
+.vscode/
