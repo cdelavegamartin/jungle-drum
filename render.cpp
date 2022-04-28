@@ -28,6 +28,9 @@ float gNoiseLength = 10; // ms
 float gNoiseInterval = 1000; //ms
 float gNoiseOn = 0;
 
+// samples ellapsed since last accelerometer measurement
+int gSampleCounter = 0;
+
 //Test push from Bela VSCode
 bool setup(BelaContext *context, void *userData)
 {
@@ -106,12 +109,15 @@ void render(BelaContext *context, void *userData)
 		float in = oscAmplitude * gSineOscillator.process();
 		// float in = oscAmplitude * gSawtoothOscillator.process();
 
-		if(1000*gSampleCounter/context->audioSampleRate>gNoise){
+		float timeElapsedMilliseconds = 1000*gSampleCounter/context->audioSampleRate; // Since last event
+		if(timeElapsedMilliseconds>gNoiseInterval){
 		// Generate white noise: random values between -1 and 1
 		float noise = 2.0 * (float)rand() / (float)RAND_MAX - 1.0;
-
+		}
 		// Process the input with the filter
-		float out = gFilter.process(in);
+		// float out = gResonator.process(in);
+
+		float out = in;
 
         
         // Write the output to every audio channel
