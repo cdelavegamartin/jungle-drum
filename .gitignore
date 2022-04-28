@@ -4,4 +4,6 @@ build/
 #VSCode configs
 .vscode/
 
+# executable
+jungle-drum
 ## Moar tests
