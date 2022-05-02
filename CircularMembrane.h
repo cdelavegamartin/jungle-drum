@@ -15,19 +15,18 @@ class ResonatorBank {
              std::vector<float>& decays);  // Set parameters
 
   void setFrequenciesHz(std::vector<float>& f);
-  std::vector<float> getFrequenciesHz();  // Get the ResonatorBank frequency
-  void setDecays(const std::vector<float>& r);  // Set the ResonatorBank decay
-  void setDecays(float r);                      // Set the ResonatorBank decay
-  std::vector<float> getDecays();               // Get the ResonatorBank decay
+  std::vector<float> getFrequenciesHz();
+  void setDecays(const std::vector<float>& r);
+  void setDecays(float r);         // Set the ResonatorBank decay
+  std::vector<float> getDecays();  // Get the ResonatorBank decay
   std::vector<Resonator>::size_type getSize();
 
   float process(float in);  // Process sample
 
   ~ResonatorBank() {}  // Destructor
- protected:
-  float sampleRate_;  // audio sample rate
 
  private:
+  float sampleRate_;                               // audio sample rate
   std::vector<Resonator>::size_type nResonators_;  // nummber of resonators
   std::vector<float> frequenciesHz_;  // Frequency of the ResonatorBank
   std::vector<float> decays_;         // Decay of the ResonatorBank
