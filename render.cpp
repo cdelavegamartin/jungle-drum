@@ -13,6 +13,7 @@
 
 #include "Excitation.h"
 #include "RectangularMembrane.h"
+#include "ResonatorBank.h"
 
 // Browser-based GUI to adjust parameters
 Gui gGui;
@@ -24,6 +25,7 @@ Scope gScope;
 // resonator objects
 
 RectangularMembrane gRectM;
+ResonatorBank gResBank;
 
 // Input Object
 Excitation gNoiseIn;
@@ -38,6 +40,9 @@ int gSampleCounter = 0;
 // Test push from Bela VSCode
 bool setup(BelaContext *context, void *userData) {
   gRectM.setup(context->audioSampleRate, 100, 0.9999, 0.00001);
+  std::vector<float> freqs(100, 0.0);
+  std::vector<float> decays(100, 0.9999);
+  gResBank.setup(context->audioSampleRate, freqs, decays);
 
   gNoiseIn.setup(context->audioSampleRate, gNoiseLength);
   rt_printf("Length ms: %f \n", gNoiseIn.getLengthMs());
@@ -77,7 +82,7 @@ void render(BelaContext *context, void *userData) {
   inAmplitude = map(inAmplitude, 0.0, 1.0, 0.0, 0.01);
   slopeDecay = map(slopeDecay, 0.0, 1.0, 0.0, 0.000001);
   maxDecay = map(maxDecay, 0.0, 1.0, 0.9999, 1.0);
-    // rt_printf("After Gui reads \n");
+  // rt_printf("After Gui reads \n");
 
   // Check for changes to avoid unnecesary computations
   if (gRectM.getNumPartials() != npar) {
@@ -98,7 +103,7 @@ void render(BelaContext *context, void *userData) {
   if (gNoiseIn.getAmplitude() != inAmplitude) {
     gNoiseIn.setAmplitude(inAmplitude);
   }
-//   rt_printf("After if checks \n");
+  //   rt_printf("After if checks \n");
   for (unsigned int n = 0; n < context->audioFrames; n++) {
     float timeElapsedMilliseconds =
         1000 * gSampleCounter /
@@ -107,7 +112,7 @@ void render(BelaContext *context, void *userData) {
                                    // \n", timeElapsedMilliseconds);
 
     float noise = 0.0;
-	float out = 0.0;
+    float out = 0.0;
     if (timeElapsedMilliseconds > gNoiseInterval) {
       rt_printf("Fundamental Frequency: %f   \n", resFrequency);
       rt_printf("Lx/Ly ratio: %f   \n", ratio);
@@ -118,6 +123,10 @@ void render(BelaContext *context, void *userData) {
       rt_printf("freq0: %f \n", freqs[0]);
       rt_printf("freqMax: %f \n", fmax);
 
+      std::vector<float> decs = gRectM.getDecays();
+      gResBank.setFrequenciesHz(freqs);
+      gResBank.setDecays(decs);
+	  
       if (gNoiseIn.getLengthMs() != inLength) {
         gNoiseIn.setLengthMs(inLength);
       }
@@ -127,13 +136,15 @@ void render(BelaContext *context, void *userData) {
       gOutMax = 0.0;
       gNoiseIn.trigger();
       rt_printf("Triggered \n");
-        noise = gNoiseIn.process();
+      noise = gNoiseIn.process();
       gSampleCounter = 0;
     } else {
-        noise = gNoiseIn.process();
+      noise = gNoiseIn.process();
       gSampleCounter++;
     }
-	out = gRectM.process(0.0);
+
+    out = gResBank.process(noise);
+    // out = gRectM.process(0.0);
     // out = gRectM.process(noise);
 
     // // Debug
