@@ -1,5 +1,5 @@
 #pragma once
-#include <libraries/OnePole/OnePole.h>
+// #include <libraries/OnePole/OnePole.h>
 
 #include <vector>
 
@@ -33,7 +33,7 @@ class Excitation {
   std::vector<float> buffer_;
   int bufferReadPointer_;
 
-  OnePole Filter_;
+  // OnePole Filter_;
 
   void allocate_buffer_();
   void fill_buffer_();

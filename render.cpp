@@ -45,22 +45,22 @@ bool setup(BelaContext *context, void *userData) {
   gResBank.setup(context->audioSampleRate, freqs, decays);
 
   gNoiseIn.setup(context->audioSampleRate, gNoiseLength);
-  rt_printf("Length ms: %f \n", gNoiseIn.getLengthMs());
+//   rt_printf("Length ms: %f \n", gNoiseIn.getLengthMs());
   // Set up the GUI
   gGui.setup(context->projectName);
   gGuiController.setup(&gGui, "Oscillator and Filter Controls");
 
   // Arguments: name, default value, minimum, maximum, increment
   // Create sliders for oscillator and filter settings
-  gGuiController.addSlider("Sqrt(Num Partials)", 10, 5, 35, 1);
+  gGuiController.addSlider("Sqrt(Num Partials)", 10, 5, 20, 1);
   gGuiController.addSlider("Input Amplitude", 0.1, 0, 1.0, 0.01);
-  gGuiController.addSlider("Fundmental Frequency", 20, 20, 500, 1);
+  gGuiController.addSlider("Fundmental Frequency", 30, 20, 500, 1);
   gGuiController.addSlider("Max Decay", 0.5, 0.0, 1.0, 0.01);
   gGuiController.addSlider("Slope Decay", 0.5, 0.0, 1.0, 0.01);
   gGuiController.addSlider("Aspect Ratio Lx/Ly", 0.5, 0.0, 1.0, 0.01);
-  gGuiController.addSlider("Input Length (ms)", 5, 0.0, 100, 0.1);
-  gGuiController.addSlider("Input ExpCoeff", 0.1, 0.0, 20.0, 0.01);
-  rt_printf("After Gui setup \n");
+  gGuiController.addSlider("Input Length (ms)", 5, 0.0, 20, 0.1);
+  gGuiController.addSlider("Input ExpCoeff", 10.0, 5.0, 20.0, 0.1);
+//   rt_printf("After Gui setup \n");
   // Set up the scope
   gScope.setup(2, context->audioSampleRate);
 
@@ -68,7 +68,7 @@ bool setup(BelaContext *context, void *userData) {
 }
 
 void render(BelaContext *context, void *userData) {
-  float gOutMax = 0.0;
+//   float gOutMax = 0.0;
   // Read the slider values
   float npar = gGuiController.getSliderValue(0);
   float inAmplitude = gGuiController.getSliderValue(1);
@@ -114,20 +114,20 @@ void render(BelaContext *context, void *userData) {
     float noise = 0.0;
     float out = 0.0;
     if (timeElapsedMilliseconds > gNoiseInterval) {
-      rt_printf("Fundamental Frequency: %f   \n", resFrequency);
-      rt_printf("Lx/Ly ratio: %f   \n", ratio);
-      rt_printf("Amplitude In: %f   \n", inAmplitude);
-      rt_printf("Max Out: %f   \n", gOutMax);
-      std::vector<float> freqs = gRectM.getFrequenciesHz();
-      float fmax = *max_element(std::begin(freqs), std::end(freqs));
-	  std::vector<float> decs = gRectM.getDecays();
-	  float decmax = *max_element(std::begin(decs), std::end(decs));
-      rt_printf("freq0: %f \n", freqs[0]);
-      rt_printf("freqMax: %f \n", fmax);
-	  rt_printf("Numpar: %i \n", gRectM.getNumPartials());
-	  rt_printf("resBank Size: %i \n", gRectM.getSize());
-	  rt_printf("Decays size: %i \n", gRectM.getDecays().size());
-	  rt_printf("Frequencies size: %i \n", freqs.size());
+    //   rt_printf("Fundamental Frequency: %f   \n", resFrequency);
+    //   rt_printf("Lx/Ly ratio: %f   \n", ratio);
+    //   rt_printf("Amplitude In: %f   \n", inAmplitude);
+    //   rt_printf("Max Out: %f   \n", gOutMax);
+    //   std::vector<float> freqs = gRectM.getFrequenciesHz();
+    //   float fmax = *max_element(std::begin(freqs), std::end(freqs));
+	// //   std::vector<float> decs = gRectM.getDecays();
+	// //   float decmax = *max_element(std::begin(decs), std::end(decs));
+    //   rt_printf("freq0: %f \n", freqs[0]);
+    //   rt_printf("freqMax: %f \n", fmax);
+	//   rt_printf("Numpar: %i \n", gRectM.getNumPartials());
+	//   rt_printf("resBank Size: %i \n", gRectM.getSize());
+	//   rt_printf("Decays size: %i \n", gRectM.getDecays().size());
+	//   rt_printf("Frequencies size: %i \n", freqs.size());
 
 
     //   std::vector<float> decs = gRectM.getDecays();
@@ -142,9 +142,9 @@ void render(BelaContext *context, void *userData) {
       if (gNoiseIn.getExponentialCoefficient() != expCoeff) {
         gNoiseIn.setExponentialCoefficient(expCoeff);
       }
-      gOutMax = 0.0;
+    //   gOutMax = 0.0;
       gNoiseIn.trigger();
-      rt_printf("Triggered \n");
+    //   rt_printf("Triggered \n");
       noise = gNoiseIn.process();
       gSampleCounter = 0;
     } else {
@@ -156,7 +156,7 @@ void render(BelaContext *context, void *userData) {
     // out = gRectM.process(0.0);
     out = gRectM.process(noise);
 
-    // // Debug
+    // Debug
     // if (fabs(out) > gOutMax) {
     //   gOutMax = fabs(out);
     // }

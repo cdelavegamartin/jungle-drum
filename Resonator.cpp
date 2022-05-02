@@ -45,21 +45,21 @@ float Resonator::getDecay() { return decay_; }
 
 // Calculate resonator coefficients
 void Resonator::calculate_coefficients_() {
-  float freqRel2 = 2.0 * frequencyHz_ * inverseSampleRate_;
+  float freqRel2 = 2.0f * frequencyHz_ * inverseSampleRate_;
   // rt_printf("freqRel2: %f \n", freqRel2);
-  // if (freqRel2 < 1.0) {
-  //   b0_ = 1.0;
-  //   a1_ = -2.0 * decay_ * cosf(M_PI * freqRel2);
-  //   a2_ = decay_ * decay_;
-  // } else {
-  //   b0_ = 0.0;
-  //   a1_ = 0.0;
-  //   a2_ = 0.0;
-  // }
-
+  if (freqRel2 < 1.0) {
     b0_ = 1.0;
-    a1_ = -2.0 * decay_ * cosf(M_PI * freqRel2);
+    a1_ = -2.0f * decay_ * cosf((float)M_PI * freqRel2);
     a2_ = decay_ * decay_;
+  } else {
+    b0_ = 0.0;
+    a1_ = 0.0;
+    a2_ = 0.0;
+  }
+
+    // b0_ = 1.0;
+    // a1_ = -2.0 * decay_ * cosf(M_PI * freqRel2);
+    // a2_ = decay_ * decay_;
 
 }
 

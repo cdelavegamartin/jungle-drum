@@ -12,9 +12,9 @@ Excitation::Excitation(float sampleRate, float lengthMs) {
 void Excitation::setup(float sampleRate, float lengthMs) {
   sampleRate_ = sampleRate;
   lengthMs_ = lengthMs;
-  rt_printf("Length ms: %f \n", lengthMs_);
+  // rt_printf("Length ms: %f \n", lengthMs_);
 
-  Filter_.setup(200, sampleRate_, OnePole::HIGHPASS);
+  // Filter_.setup(200, sampleRate_, OnePole::HIGHPASS);
   allocate_buffer_();
   fill_buffer_();
 }
@@ -49,10 +49,11 @@ void Excitation::allocate_buffer_() {
 
 void Excitation::fill_buffer_() {
   float normInd = 0.0;
+  float step = 1.0f / (float)(lengthSamples_);
   for (int i = 0; i < buffer_.size(); i++) {
-    normInd = (float)i / (float)(lengthSamples_);
-    buffer_[i] = (1.0 + 0.5 * (1.0 + cosf(M_PI * normInd))) *
+    buffer_[i] = (1.0f + 0.5f * (1.0f + cosf(M_PI * normInd))) *
                  (expf(-expCoeff_ * (normInd)));
+    normInd += step;
   }
 }
 

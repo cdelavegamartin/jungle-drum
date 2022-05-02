@@ -42,28 +42,28 @@ std::vector<float> RectangularMembrane::calculate_frequencies_(int n, int m) {
   float r2 = powf(lengthRatio_, 2);
   float B2 = ((r2 + 1) / r2);
   float A2 = r2 + 1;
-  // float fPrev = 0.0;
-  // for (int i = 0; i < n; i++) {
-  //   for (int j = 0; j < m; j++) {
-  //     float coeff =
-  //         sqrtf(powf((float)(i + 1), 2) / A2 + powf((float)(j + 1), 2) / B2);
-  //     float f = coeff * fundamentalFrequencyHz_;
-  //     if (fabs(f - fPrev) > 0.01) {
-  //       freqs[i * m + j] = f;
-  //     } else {
-  //       freqs[i * m + j] = sampleRate_;
-  //     }
-  //     fPrev = f;
-  //   }
-  // }
+  float fPrev = 0.0;
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < m; j++) {
       float coeff =
           sqrtf(powf((float)(i + 1), 2) / A2 + powf((float)(j + 1), 2) / B2);
       float f = coeff * fundamentalFrequencyHz_;
-      freqs[i * m + j] = f;
+      if (fabs(f - fPrev) > 5.0) {
+        freqs[i * m + j] = f;
+      } else {
+        freqs[i * m + j] = sampleRate_;
+      }
+      fPrev = f;
     }
   }
+  // for (int i = 0; i < n; i++) {
+  //   for (int j = 0; j < m; j++) {
+  //     float coeff =
+  //         sqrtf(powf((float)(i + 1), 2) / A2 + powf((float)(j + 1), 2) / B2);
+  //     float f = coeff * fundamentalFrequencyHz_;
+  //     freqs[i * m + j] = f;
+  //   }
+  // }
   return freqs;
 }
 
