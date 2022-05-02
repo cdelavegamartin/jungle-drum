@@ -4,6 +4,8 @@ build/
 #VSCode configs
 .vscode/
 
-# executable
+# Executable
 jungle-drum
-## Moar tests
+
+# Bela audio config
+./settings.json
