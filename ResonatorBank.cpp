@@ -81,6 +81,7 @@ float ResonatorBank::process(const float in) {
   for (int i = 0; i < nResonators_; i++) {
     out += resonators_[i].process(in);
   }
-  out /= ((float)nResonators_);
+  // out /= ((float)nResonators_);
+  out /= 25.0;
   return out;
 }
