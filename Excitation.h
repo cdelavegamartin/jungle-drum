@@ -7,10 +7,10 @@ class Excitation {
  public:
   // constructors
   Excitation() {}  // Default constructor
-  Excitation(float sampleRate, float lengthMs);
+  Excitation(float sampleRate, float lengthMs, float expCoeff);
 
   // Set parameters
-  void setup(float sampleRate, float lengthMs);
+  void setup(float sampleRate, float lengthMs, float expCoeff);
 
   void setLengthMs(float l);
   float getLengthMs();
@@ -27,14 +27,14 @@ class Excitation {
  private:
   float sampleRate_;
   float lengthMs_;
+  float lengthMsNew_;
   int lengthSamples_;
   float expCoeff_;
+  float expCoeffNew_;
   float amplitude_;
-  std::vector<float> buffer_;
-  int bufferReadPointer_;
+  float readPosition_;
+  float step_;
 
-  // OnePole Filter_;
-
-  void allocate_buffer_();
-  void fill_buffer_();
+  void calculate_internal_parameters_();
+  void reset_read_pos_();
 };

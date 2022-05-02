@@ -5,31 +5,23 @@
 #include <algorithm>
 #include <cmath>
 
-Excitation::Excitation(float sampleRate, float lengthMs) {
-  setup(sampleRate, lengthMs);
+Excitation::Excitation(float sampleRate, float lengthMs, float expCoeff) {
+  setup(sampleRate, lengthMs, expCoeff);
 }
 
-void Excitation::setup(float sampleRate, float lengthMs) {
+void Excitation::setup(float sampleRate, float lengthMs, float expCoeff) {
   sampleRate_ = sampleRate;
-  lengthMs_ = lengthMs;
-  // rt_printf("Length ms: %f \n", lengthMs_);
-
-  // Filter_.setup(200, sampleRate_, OnePole::HIGHPASS);
-  allocate_buffer_();
-  fill_buffer_();
+  lengthMsNew_ = lengthMs;
+  expCoeffNew_ = expCoeff;
+  trigger();
 }
 
-void Excitation::setLengthMs(float l) {
-  lengthMs_ = l;
-  allocate_buffer_();
-  fill_buffer_();
-}
+void Excitation::setLengthMs(float l) { lengthMsNew_ = l; }
 
 float Excitation::getLengthMs() { return lengthMs_; }
 
 void Excitation::setExponentialCoefficient(float coeff) {
-  expCoeff_ = coeff;
-  fill_buffer_();
+  expCoeffNew_ = coeff;
 }
 
 float Excitation::getExponentialCoefficient() { return expCoeff_; }
@@ -38,32 +30,26 @@ void Excitation::setAmplitude(float amp) { amplitude_ = amp; }
 
 float Excitation::getAmplitude() { return amplitude_; }
 
-void Excitation::allocate_buffer_() {
+void Excitation::calculate_internal_parameters_() {
   lengthSamples_ = (int)(0.001 * lengthMs_ * sampleRate_);
-  buffer_.resize(lengthSamples_);
-  // rt_printf("Length samples: %i \n", lengthSamples_);
-  // rt_printf("Length of buffer: %i \n", buffer_.size());
-
-  bufferReadPointer_ = 0;
+  step_ = 1.0f / (float)(lengthSamples_);
+  readPosition_ = 0.0;
 }
 
-void Excitation::fill_buffer_() {
-  float normInd = 0.0;
-  float step = 1.0f / (float)(lengthSamples_);
-  for (int i = 0; i < buffer_.size(); i++) {
-    buffer_[i] = (1.0f + 0.5f * (1.0f + cosf(M_PI * normInd))) *
-                 (expf(-expCoeff_ * (normInd)));
-    normInd += step;
-  }
+void Excitation::trigger() {
+  lengthMs_ = lengthMsNew_;
+  expCoeff_ = expCoeffNew_;
+  calculate_internal_parameters_();
+  reset_read_pos_();
 }
 
-void Excitation::trigger() { bufferReadPointer_ = 0; }
+void Excitation::reset_read_pos_() { readPosition_ = 0.0; }
 
 float Excitation::process() {
   float out = 0.0;
-  if (bufferReadPointer_ < (int)buffer_.size()) {
-    out = amplitude_ * buffer_[bufferReadPointer_];
-    bufferReadPointer_++;
+  if (readPosition_ < lengthSamples_) {
+    out = amplitude_ * expf(-expCoeff_ * (readPosition_));
+    readPosition_ += step_;
   }
 
   return out;

@@ -44,8 +44,8 @@ bool setup(BelaContext *context, void *userData) {
   std::vector<float> decays(100, 0.9999);
   gResBank.setup(context->audioSampleRate, freqs, decays);
 
-  gNoiseIn.setup(context->audioSampleRate, gNoiseLength);
-//   rt_printf("Length ms: %f \n", gNoiseIn.getLengthMs());
+  gNoiseIn.setup(context->audioSampleRate, gNoiseLength, 5.0);
+  //   rt_printf("Length ms: %f \n", gNoiseIn.getLengthMs());
   // Set up the GUI
   gGui.setup(context->projectName);
   gGuiController.setup(&gGui, "Oscillator and Filter Controls");
@@ -60,7 +60,7 @@ bool setup(BelaContext *context, void *userData) {
   gGuiController.addSlider("Aspect Ratio Lx/Ly", 0.5, 0.0, 1.0, 0.01);
   gGuiController.addSlider("Input Length (ms)", 5, 0.0, 20, 0.1);
   gGuiController.addSlider("Input ExpCoeff", 10.0, 5.0, 20.0, 0.1);
-//   rt_printf("After Gui setup \n");
+  //   rt_printf("After Gui setup \n");
   // Set up the scope
   gScope.setup(2, context->audioSampleRate);
 
@@ -68,7 +68,7 @@ bool setup(BelaContext *context, void *userData) {
 }
 
 void render(BelaContext *context, void *userData) {
-//   float gOutMax = 0.0;
+  //   float gOutMax = 0.0;
   // Read the slider values
   float npar = gGuiController.getSliderValue(0);
   float inAmplitude = gGuiController.getSliderValue(1);
@@ -103,6 +103,8 @@ void render(BelaContext *context, void *userData) {
   if (gNoiseIn.getAmplitude() != inAmplitude) {
     gNoiseIn.setAmplitude(inAmplitude);
   }
+    gNoiseIn.setLengthMs(inLength);
+    gNoiseIn.setExponentialCoefficient(expCoeff);
   //   rt_printf("After if checks \n");
   for (unsigned int n = 0; n < context->audioFrames; n++) {
     float timeElapsedMilliseconds =
@@ -114,37 +116,30 @@ void render(BelaContext *context, void *userData) {
     float noise = 0.0;
     float out = 0.0;
     if (timeElapsedMilliseconds > gNoiseInterval) {
-    //   rt_printf("Fundamental Frequency: %f   \n", resFrequency);
-    //   rt_printf("Lx/Ly ratio: %f   \n", ratio);
-    //   rt_printf("Amplitude In: %f   \n", inAmplitude);
-    //   rt_printf("Max Out: %f   \n", gOutMax);
-    //   std::vector<float> freqs = gRectM.getFrequenciesHz();
-    //   float fmax = *max_element(std::begin(freqs), std::end(freqs));
-	// //   std::vector<float> decs = gRectM.getDecays();
-	// //   float decmax = *max_element(std::begin(decs), std::end(decs));
-    //   rt_printf("freq0: %f \n", freqs[0]);
-    //   rt_printf("freqMax: %f \n", fmax);
-	//   rt_printf("Numpar: %i \n", gRectM.getNumPartials());
-	//   rt_printf("resBank Size: %i \n", gRectM.getSize());
-	//   rt_printf("Decays size: %i \n", gRectM.getDecays().size());
-	//   rt_printf("Frequencies size: %i \n", freqs.size());
+      //   rt_printf("Fundamental Frequency: %f   \n", resFrequency);
+      //   rt_printf("Lx/Ly ratio: %f   \n", ratio);
+      //   rt_printf("Amplitude In: %f   \n", inAmplitude);
+      //   rt_printf("Max Out: %f   \n", gOutMax);
+      //   std::vector<float> freqs = gRectM.getFrequenciesHz();
+      //   float fmax = *max_element(std::begin(freqs), std::end(freqs));
+      // //   std::vector<float> decs = gRectM.getDecays();
+      // //   float decmax = *max_element(std::begin(decs), std::end(decs));
+      //   rt_printf("freq0: %f \n", freqs[0]);
+      //   rt_printf("freqMax: %f \n", fmax);
+      //   rt_printf("Numpar: %i \n", gRectM.getNumPartials());
+      //   rt_printf("resBank Size: %i \n", gRectM.getSize());
+      //   rt_printf("Decays size: %i \n", gRectM.getDecays().size());
+      //   rt_printf("Frequencies size: %i \n", freqs.size());
 
+      //   std::vector<float> decs = gRectM.getDecays();
+      //   gResBank.setFrequenciesHz(freqs);
+      //   gResBank.setDecays(decs);
+      //   gRectM.setFrequenciesHz(freqs);
+      //   gRectM.setDecays(decs);
 
-    //   std::vector<float> decs = gRectM.getDecays();
-    //   gResBank.setFrequenciesHz(freqs);
-    //   gResBank.setDecays(decs);
-	//   gRectM.setFrequenciesHz(freqs);
-    //   gRectM.setDecays(decs);
-	  
-      if (gNoiseIn.getLengthMs() != inLength) {
-        gNoiseIn.setLengthMs(inLength);
-      }
-      if (gNoiseIn.getExponentialCoefficient() != expCoeff) {
-        gNoiseIn.setExponentialCoefficient(expCoeff);
-      }
-    //   gOutMax = 0.0;
+      //   gOutMax = 0.0;
       gNoiseIn.trigger();
-    //   rt_printf("Triggered \n");
+      //   rt_printf("Triggered \n");
       noise = gNoiseIn.process();
       gSampleCounter = 0;
     } else {
