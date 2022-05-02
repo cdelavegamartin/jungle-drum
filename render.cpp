@@ -39,7 +39,7 @@ int gSampleCounter = 0;
 
 // Test push from Bela VSCode
 bool setup(BelaContext *context, void *userData) {
-  gRectM.setup(context->audioSampleRate, 100, 0.9999, 0.00001);
+  gRectM.setup(context->audioSampleRate, 10, 0.9999, 0.00001);
   std::vector<float> freqs(100, 0.0);
   std::vector<float> decays(100, 0.9999);
   gResBank.setup(context->audioSampleRate, freqs, decays);
@@ -120,12 +120,21 @@ void render(BelaContext *context, void *userData) {
       rt_printf("Max Out: %f   \n", gOutMax);
       std::vector<float> freqs = gRectM.getFrequenciesHz();
       float fmax = *max_element(std::begin(freqs), std::end(freqs));
+	  std::vector<float> decs = gRectM.getDecays();
+	  float decmax = *max_element(std::begin(decs), std::end(decs));
       rt_printf("freq0: %f \n", freqs[0]);
       rt_printf("freqMax: %f \n", fmax);
+	  rt_printf("Numpar: %i \n", gRectM.getNumPartials());
+	  rt_printf("resBank Size: %i \n", gRectM.getSize());
+	  rt_printf("Decays size: %i \n", gRectM.getDecays().size());
+	  rt_printf("Frequencies size: %i \n", freqs.size());
 
-      std::vector<float> decs = gRectM.getDecays();
-      gResBank.setFrequenciesHz(freqs);
-      gResBank.setDecays(decs);
+
+    //   std::vector<float> decs = gRectM.getDecays();
+    //   gResBank.setFrequenciesHz(freqs);
+    //   gResBank.setDecays(decs);
+	//   gRectM.setFrequenciesHz(freqs);
+    //   gRectM.setDecays(decs);
 	  
       if (gNoiseIn.getLengthMs() != inLength) {
         gNoiseIn.setLengthMs(inLength);
@@ -143,9 +152,9 @@ void render(BelaContext *context, void *userData) {
       gSampleCounter++;
     }
 
-    out = gResBank.process(noise);
+    // out = gResBank.process(noise);
     // out = gRectM.process(0.0);
-    // out = gRectM.process(noise);
+    out = gRectM.process(noise);
 
     // // Debug
     // if (fabs(out) > gOutMax) {

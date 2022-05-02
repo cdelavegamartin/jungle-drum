@@ -28,7 +28,7 @@ class RectangularMembrane : public ResonatorBank {
   void setNumPartials(int numPartials);
   int getNumPartials();
 
-  float process(float in);  // Process sample
+  // float process(float in);  // Process sample
 
   ~RectangularMembrane() {}  // Destructor
 

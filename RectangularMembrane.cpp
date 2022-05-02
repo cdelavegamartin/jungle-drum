@@ -77,9 +77,9 @@ std::vector<float> RectangularMembrane::calculate_decays_(
   return decays;
 }
 
-float RectangularMembrane::process(float in) {
-  return ResonatorBank::process(in);
-}
+// float RectangularMembrane::process(float in) {
+//   return ResonatorBank::process(in);
+// }
 
 // Helper functions
 void RectangularMembrane::update_decays() {

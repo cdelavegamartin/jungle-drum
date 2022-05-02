@@ -16,8 +16,9 @@ ResonatorBank::ResonatorBank(float sampleRate,
 void ResonatorBank::setup(float sampleRate, std::vector<float>& frequenciesHz,
                           std::vector<float>& decays) {
   sampleRate_ = sampleRate;
-  nResonators_ = frequenciesHz.size();
+  
   frequenciesHz_ = frequenciesHz;  // Frequencies of the resonators
+  nResonators_ = frequenciesHz_.size();
   decays_ = decays;                // Frequencies of the resonators
   resonators_.resize(nResonators_);
 //   std::cout << "In ResonatorBank::setup after resize \n" << std::endl;
@@ -40,6 +41,8 @@ void ResonatorBank::setup(float sampleRate, std::vector<float>& frequenciesHz,
 // Set the ResonatorBank frequencies
 void ResonatorBank::setFrequenciesHz(std::vector<float>& frequenciesHz) {
   frequenciesHz_ = frequenciesHz;
+  nResonators_ = frequenciesHz_.size();
+  resonators_.resize(nResonators_);
   for (int i = 0; i < nResonators_; i++) {
     resonators_[i].setFrequencyHz(frequenciesHz_[i]);
   }
@@ -78,6 +81,6 @@ float ResonatorBank::process(const float in) {
   for (int i = 0; i < nResonators_; i++) {
     out += resonators_[i].process(in);
   }
-  out /= (float)nResonators_;
+  out /= ((float)nResonators_);
   return out;
 }
