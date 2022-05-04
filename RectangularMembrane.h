@@ -10,12 +10,12 @@ class RectangularMembrane : public ResonatorBank {
   // constructors
   RectangularMembrane() {}  // Default constructor
   RectangularMembrane(float sampleRate, float fundamentalFrequencyHz,
-                      float decayMax, float decaySlope, int numPartials = 100,
+                      float decayMax, float decaySlope, int numPartials = 10,
                       float lengthRatio = 0.5);
 
   // Set parameters
   void setup(float sampleRate, float fundamentalFrequencyHz, float decayMax,
-             float decaySlope, int numPartials = 100, float lengthRatio = 0.5);
+             float decaySlope, int numPartials = 10, float lengthRatio = 0.5);
 
   void setFundamentalFrequencyHz(float f);
   float getFundamentalFrequencyHz();
