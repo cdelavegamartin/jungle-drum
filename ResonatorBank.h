@@ -26,10 +26,11 @@ class ResonatorBank {
   ~ResonatorBank() {}  // Destructor
  protected:
   float sampleRate_;  // audio sample rate
+  std::vector<Resonator> resonators_;
 
  private:
   std::vector<Resonator>::size_type nResonators_;  // nummber of resonators
   std::vector<float> frequenciesHz_;  // Frequency of the ResonatorBank
   std::vector<float> decays_;         // Decay of the ResonatorBank
-  std::vector<Resonator> resonators_;
+  
 };
