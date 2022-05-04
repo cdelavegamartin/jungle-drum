@@ -7,7 +7,6 @@
 #include <cmath>
 #include <vector>
 
-
 // Constructor taking arguments
 RectangularMembrane::RectangularMembrane(float sampleRate,
                                          float fundamentalFrequencyHz,
@@ -32,13 +31,12 @@ void RectangularMembrane::setup(float sampleRate, float fundamentalFrequencyHz,
   std::vector<float> decays = calculate_decays_(frequencies);
 
   ResonatorBank::setup(sampleRate_, frequencies, decays);
-
 }
 
 std::vector<float> RectangularMembrane::calculate_frequencies_(int n, int m) {
   std::vector<float> freqs(n * m, 0.0);
   // freqs.reserve(nHarmonics);
-  
+
   float r2 = powf(lengthRatio_, 2);
   float B2 = ((r2 + 1) / r2);
   float A2 = r2 + 1;
@@ -98,28 +96,38 @@ void RectangularMembrane::update_freqs_and_decays() {
 
 // Accesors
 void RectangularMembrane::setFundamentalFrequencyHz(float f) {
-  fundamentalFrequencyHz_ = f;
-  update_freqs_and_decays();
+  if (fundamentalFrequencyHz_ != f) {
+    fundamentalFrequencyHz_ = f;
+    update_freqs_and_decays();
+  }
 }
 
 void RectangularMembrane::setDecayMax(float r) {
-  decayMax_ = r;
-  update_decays();
+  if (decayMax_ != r) {
+    decayMax_ = r;
+    update_decays();
+  }
 }
 
 void RectangularMembrane::setDecaySlope(float s) {
-  decaySlope_ = s;
-  update_decays();
+  if (decaySlope_ != s) {
+    decaySlope_ = s;
+    update_decays();
+  }
 }
 
 void RectangularMembrane::setLengthRatio(float l) {
-  lengthRatio_ = l;
-  update_freqs_and_decays();
+  if (lengthRatio_ != l) {
+    lengthRatio_ = l;
+    update_freqs_and_decays();
+  }
 }
 
 void RectangularMembrane::setNumPartials(int num) {
-  numPartials_ = num;
-  update_freqs_and_decays();
+  if (numPartials_ != num) {
+    numPartials_ = num;
+    update_freqs_and_decays();
+  }
 }
 
 // Get the resonator frequency
