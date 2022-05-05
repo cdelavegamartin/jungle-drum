@@ -10,25 +10,54 @@
 
 // Constructor taking arguments for sample rate and table data
 BiquadResonatorBank::BiquadResonatorBank(
-    float sampleRate, const std::vector<float>& frequenciesHz,
+    const float sampleRate, const std::vector<float>& frequenciesHz,
     const std::vector<float>& resonances, const std::vector<float>& gainsDb) {
   setup(sampleRate, frequenciesHz, resonances, gainsDb);
 }
 
-void BiquadResonatorBank::setup(float sampleRate,
+BiquadResonatorBank::BiquadResonatorBank(
+    const float sampleRate, const std::vector<float>& frequenciesHz) {
+  setup(sampleRate, frequenciesHz);
+}
+
+void BiquadResonatorBank::setup(const float sampleRate,
                                 const std::vector<float>& frequenciesHz,
                                 const std::vector<float>& resonances,
                                 const std::vector<float>& gainsDb) {
   sampleRate_ = sampleRate;
   settings_.fs = sampleRate_;
   settings_.type = Biquad::peak;
-setFrequenciesHz(frequenciesHz);
-setResonances(resonances);
- 
+  setFrequenciesHz(frequenciesHz);
+  setResonances(resonances);
+  setGainsDb(gainsDb);
+}
+
+void BiquadResonatorBank::setup(const float sampleRate,
+                                const std::vector<float>& frequenciesHz,
+                                const float resonance,
+                                const std::vector<float>& gainsDb) {
+  sampleRate_ = sampleRate;
+  settings_.fs = sampleRate_;
+  settings_.type = Biquad::peak;
+  setFrequenciesHz(frequenciesHz);
+  setResonances(resonance);
+  setGainsDb(gainsDb);
+}
+
+void BiquadResonatorBank::setup(const float sampleRate,
+                                const std::vector<float>& frequenciesHz,
+                                const float resonance, const float gainDb) {
+  sampleRate_ = sampleRate;
+  settings_.fs = sampleRate_;
+  settings_.type = Biquad::peak;
+  setFrequenciesHz(frequenciesHz);
+  setResonances(resonance);
+  setGainsDb(gainDb);
 }
 
 // Set the BiquadResonatorBank frequencies
-void BiquadResonatorBank::setFrequenciesHz(const std::vector<float>& frequenciesHz) {
+void BiquadResonatorBank::setFrequenciesHz(
+    const std::vector<float>& frequenciesHz) {
   frequenciesHz_ = frequenciesHz;
   nResonators_ = frequenciesHz_.size();
   resonators_.resize(nResonators_, Biquad(settings_));
@@ -73,7 +102,6 @@ void BiquadResonatorBank::setGainsDb(const std::vector<float>& gainsDb) {
     gainsDb_.resize(nResonators_, 0.0);
   }
   for (int i = 0; i < nResonators_; i++) {
-    
     resonators_[i].setPeakGain(gainsDb_[i]);
   }
 }

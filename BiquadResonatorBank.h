@@ -8,12 +8,23 @@
 class BiquadResonatorBank {
  public:
   BiquadResonatorBank() {}  // Default constructor
-  BiquadResonatorBank(float sampleRate, const std::vector<float>& frequenciesHz,
+  BiquadResonatorBank(const float sampleRate,
+                      const std::vector<float>& frequenciesHz,
                       const std::vector<float>& resonances,
                       const std::vector<float>& gainsDb);
 
-  void setup(float sampleRate, const std::vector<float>& frequencies,
-             const std::vector<float>& resonances, const std::vector<float>& gainsDb);
+  BiquadResonatorBank(const float sampleRate,
+                      const std::vector<float>& frequenciesHz);
+
+  void setup(const float sampleRate, const std::vector<float>& frequencies,
+             const std::vector<float>& resonances,
+             const std::vector<float>& gainsDb);
+
+  void setup(const float sampleRate, const std::vector<float>& frequencies,
+             const float resonance, const std::vector<float>& gainsDb);
+
+  void setup(const float sampleRate, const std::vector<float>& frequencies,
+             const float resonance = 100.0, const float gainDb = 50.0);
 
   void setFrequenciesHz(const std::vector<float>& fs);
   std::vector<float> getFrequenciesHz();
