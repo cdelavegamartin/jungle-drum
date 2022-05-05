@@ -47,8 +47,10 @@ void Excitation::reset_read_pos_() { readPosition_ = 0.0; }
 
 float Excitation::process() {
   float out = 0.0;
-  if (readPosition_ < lengthSamples_) {
-    out = amplitude_ * expf(-expCoeff_ * (readPosition_));
+  if (readPosition_ < 1.0) {
+    // out = amplitude_ * expf(-expCoeff_ * (readPosition_));
+    out = amplitude_ *0.5f * (1.0f + cosf(M_PI *(2.0f*readPosition_ -1.0f)));
+  
     readPosition_ += step_;
   }
 
