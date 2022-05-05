@@ -193,8 +193,8 @@ void render(BelaContext *context, void *userData) {
       //     // 	if (gNlinM.getPitchGlideFactor() != glideFactor) {
       //     //     gNlinM.setPitchGlideFactor(glideFactor);
       //     //   }
-      //     if (gRectM.getNumPartials() != npar) {
-      //       gRectM.setNumPartials(npar);
+      //     if (gRectM.getNumPartialsPerDim() != npar) {
+      //       gRectM.setNumPartialsPerDim(npar);
       //     }
       //     rt_printf(
       //         "################################ PARAM "
@@ -214,7 +214,7 @@ void render(BelaContext *context, void *userData) {
       //     // std::end(decs));
       //     // //   rt_printf("freq0: %f \n", freqs[0]);
       //     // //   rt_printf("freqMax: %f \n", fmax);
-      //     // //   rt_printf("Numpar: %i \n", gNlinM.getNumPartials());
+      //     // //   rt_printf("Numpar: %i \n", gNlinM.getNumPartialsPerDim());
       //     // //   rt_printf("resBank Size: %i \n", gNlinM.getSize());
       //     // //   rt_printf("Decays size: %i \n", gNlinM.getDecays().size());
       //     // //   rt_printf("Frequencies size: %i \n", freqs.size());
@@ -232,7 +232,7 @@ void render(BelaContext *context, void *userData) {
       //     //   float decmax = *max_element(std::begin(decs), std::end(decs));
       //     rt_printf("freq0: %f \n", freqs[0]);
       //     rt_printf("freqMax: %f \n", fmax);
-      //     rt_printf("Numpar: %i \n", gRectM.getNumPartials());
+      //     rt_printf("Numpar: %i \n", gRectM.getNumPartialsPerDim());
       //     rt_printf("resBank Size: %i \n", gRectM.getSize());
       //     rt_printf("Decays size: %i \n", gRectM.getDecays().size());
       //     rt_printf("Frequencies size: %i \n", freqs.size());
@@ -246,8 +246,8 @@ void render(BelaContext *context, void *userData) {
       //     envelope.gate(true);
       //     gGateStatus = 1;
 
-      //     //   if (gNlinM.getNumPartials() != npar) {
-      //     //     gNlinM.setNumPartials(npar);
+      //     //   if (gNlinM.getNumPartialsPerDim() != npar) {
+      //     //     gNlinM.setNumPartialsPerDim(npar);
       //     //   }
       //     //   if (gNlinM.getFundamentalFrequencyHz() != resFrequency) {
       //     //     gNlinM.setFundamentalFrequencyHz(resFrequency);

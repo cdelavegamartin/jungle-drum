@@ -5,18 +5,18 @@
 NonlinearMembrane::NonlinearMembrane(float sampleRate,
                                      float fundamentalFrequencyHz,
                                      float decayMax, float decaySlope,
-                                     float pitchGlideFactor, float expFactor, int numPartials,
+                                     float pitchGlideFactor, float expFactor, int numPartialsPerDim,
                                      float lengthRatio) {
   setup(sampleRate, fundamentalFrequencyHz, decayMax, decaySlope,
-        pitchGlideFactor, expFactor, numPartials, lengthRatio);
+        pitchGlideFactor, expFactor, numPartialsPerDim, lengthRatio);
 }
 
 void NonlinearMembrane::setup(float sampleRate, float fundamentalFrequencyHz,
                               float decayMax, float decaySlope,
-                              float pitchGlideFactor, float expFactor, int numPartials,
+                              float pitchGlideFactor, float expFactor, int numPartialsPerDim,
                               float lengthRatio) {
   RectangularMembrane::setup(sampleRate, fundamentalFrequencyHz, decayMax,
-                             decaySlope, numPartials, lengthRatio);
+                             decaySlope, numPartialsPerDim, lengthRatio);
   PitchGlide::setup(pitchGlideFactor, expFactor);
   counter_ = 0;
   blocksize_ = 512;

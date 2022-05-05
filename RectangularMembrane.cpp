@@ -12,23 +12,23 @@
 RectangularMembrane::RectangularMembrane(float sampleRate,
                                          float fundamentalFrequencyHz,
                                          float decayMax, float decaySlope,
-                                         int numPartials, float lengthRatio) {
-  setup(sampleRate, fundamentalFrequencyHz, decayMax, decaySlope, numPartials,
+                                         int numPartialsPerDim, float lengthRatio) {
+  setup(sampleRate, fundamentalFrequencyHz, decayMax, decaySlope, numPartialsPerDim,
         lengthRatio);
 }
 
 void RectangularMembrane::setup(float sampleRate, float fundamentalFrequencyHz,
                                 float decayMax, float decaySlope,
-                                int numPartials, float lengthRatio) {
+                                int numPartialsPerDim, float lengthRatio) {
   sampleRate_ = sampleRate;
   fundamentalFrequencyHz_ = fundamentalFrequencyHz;
   decayMax_ = decayMax;
   decaySlope_ = decaySlope;
-  numPartials_ = numPartials;
+  numPartialsPerDim_ = numPartialsPerDim;
   lengthRatio_ = lengthRatio;
 
   std::vector<float> frequencies =
-      calculate_frequencies_(numPartials_, numPartials_);
+      calculate_frequencies_(numPartialsPerDim_, numPartialsPerDim_);
   std::vector<float> decays = calculate_decays_(frequencies);
 
   ResonatorBank::setup(sampleRate_, frequencies, decays);
@@ -48,7 +48,7 @@ std::vector<float> RectangularMembrane::calculate_frequencies_(int n, int m) {
       float coeff =
           sqrtf(powf((float)(i + 1), 2) / A2 + powf((float)(j + 1), 2) / B2);
       float f = coeff * fundamentalFrequencyHz_;
-      if (fabs(f - fPrev) > 5.0) {
+      if (fabs(f - fPrev) > 0.0000001) {
         freqs[i * m + j] = f;
       } else {
         freqs[i * m + j] = sampleRate_;
@@ -90,7 +90,7 @@ void RectangularMembrane::update_decays() {
 
 void RectangularMembrane::update_freqs_and_decays() {
   std::vector<float> frequencies =
-      calculate_frequencies_(numPartials_, numPartials_);
+      calculate_frequencies_(numPartialsPerDim_, numPartialsPerDim_);
   std::vector<float> decays = calculate_decays_(frequencies);
   setFrequenciesHz(frequencies);
   setDecays(decays);
@@ -117,8 +117,8 @@ void RectangularMembrane::setLengthRatio(float l) {
   update_freqs_and_decays();
 }
 
-void RectangularMembrane::setNumPartials(int num) {
-  numPartials_ = num;
+void RectangularMembrane::setNumPartialsPerDim(int num) {
+  numPartialsPerDim_ = num;
   update_freqs_and_decays();
 }
 
@@ -127,6 +127,6 @@ float RectangularMembrane::getFundamentalFrequencyHz() {
   return fundamentalFrequencyHz_;
 }
 float RectangularMembrane::getLengthRatio() { return lengthRatio_; }
-int RectangularMembrane::getNumPartials() { return numPartials_; }
+int RectangularMembrane::getNumPartialsPerDim() { return numPartialsPerDim_; }
 float RectangularMembrane::getDecayMax() { return decayMax_; }
 float RectangularMembrane::getDecaySlope() { return decaySlope_; }

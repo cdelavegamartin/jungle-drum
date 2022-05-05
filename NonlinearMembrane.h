@@ -10,13 +10,13 @@ class NonlinearMembrane : public RectangularMembrane, public PitchGlide {
   NonlinearMembrane() {}  // Default constructor
   NonlinearMembrane(float sampleRate, float fundamentalFrequencyHz,
                     float decayMax, float decaySlope,
-                    float pitchGlideFactor = 0.0,  float expFactor=0.99, int numPartials = 100,
+                    float pitchGlideFactor = 0.0,  float expFactor=0.99, int numPartialsPerDim = 100,
                     float lengthRatio = 0.5);
 
   // Set parameters
   void setup(float sampleRate, float fundamentalFrequencyHz, float decayMax,
              float decaySlope, float pitchGlideFactor = 0.0,  float expFactor=0.99,
-             int numPartials = 100, float lengthRatio = 0.5);
+             int numPartialsPerDim = 100, float lengthRatio = 0.5);
 
   float process(float in);  // Process sample
 
