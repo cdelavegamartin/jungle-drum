@@ -8,27 +8,25 @@
 #include <vector>
 
 // Constructor taking arguments
-RectangularMembraneBq::RectangularMembraneBq(float sampleRate,
-                                             float fundamentalFrequencyHz,
-                                             float gainDbMax, float gainDbSlope,
-                                             float resonance,
-                                             int numPartialsPerDim,
-                                             float lengthRatio) {
-  setup(sampleRate, fundamentalFrequencyHz, gainDbMax, gainDbSlope,
-        numPartialsPerDim, lengthRatio);
+RectangularMembraneBq::RectangularMembraneBq(
+    float sampleRate, float fundamentalFrequencyHz, int numPartialsPerDim,
+    float lengthRatio, float resonance, float gainDbMax, float gainDbSlope) {
+  setup(sampleRate, fundamentalFrequencyHz, numPartialsPerDim, lengthRatio,
+        resonance, gainDbMax, gainDbSlope);
 }
 
 void RectangularMembraneBq::setup(float sampleRate,
-                                  float fundamentalFrequencyHz, float gainDbMax,
-                                  float gainDbSlope, float resonance,
-                                  int numPartialsPerDim, float lengthRatio) {
+                                  float fundamentalFrequencyHz,
+                                  int numPartialsPerDim, float lengthRatio,
+                                  float resonance, float gainDbMax,
+                                  float gainDbSlope) {
   sampleRate_ = sampleRate;
   fundamentalFrequencyHz_ = fundamentalFrequencyHz;
-  gainDbMax_ = gainDbMax;
-  gainDbSlope_ = gainDbSlope;
-  resonance_ = resonance;
   numPartialsPerDim_ = numPartialsPerDim;
   lengthRatio_ = lengthRatio;
+  resonance_ = resonance;
+  gainDbMax_ = gainDbMax;
+  gainDbSlope_ = gainDbSlope;
 
   normFrequencies_ =
       calculate_normalized_frequencies_(numPartialsPerDim_, lengthRatio_);

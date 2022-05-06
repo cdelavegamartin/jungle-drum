@@ -10,14 +10,15 @@ class RectangularMembraneBq : public BiquadResonatorBank {
   // constructors
   RectangularMembraneBq() {}  // Default constructor
   RectangularMembraneBq(float sampleRate, float fundamentalFrequencyHz,
-                        float gainDbMax, float gainDbSlope,
-                        float resonance = 100, int numPartialsPerDim = 10,
-                        float lengthRatio = 0.5);
+                        int numPartialsPerDim = 10, float lengthRatio = 0.5f,
+                        float resonance = 100.0f, float gainDbMax = 30.0f,
+                        float gainDbSlope = 5.0f);
 
   // Set parameters
-  void setup(float sampleRate, float fundamentalFrequencyHz, float gainDbMax,
-             float gainDbSlope, float resonance = 100,
-             int numPartialsPerDim = 10, float lengthRatio = 0.5);
+  void setup(float sampleRate, float fundamentalFrequencyHz,
+             int numPartialsPerDim = 10, float lengthRatio = 0.5f,
+             float resonance = 100.0f, float gainDbMax = 30.0f,
+             float gainDbSlope = 5.0f);
 
   void setFundamentalFrequencyHz(float f);
   float getFundamentalFrequencyHz();
