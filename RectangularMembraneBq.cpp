@@ -96,6 +96,7 @@ void RectangularMembraneBq::update_freqs_and_gainsDb() {
   setFrequenciesHz(
       calculate_frequencies_(fundamentalFrequencyHz_, normFrequencies_));
   setGainsDb(calculate_gainsDb_());
+  setResonances(resonance_);
 }
 
 // Setters
