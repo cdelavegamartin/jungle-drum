@@ -12,25 +12,29 @@
 // #include <iostream>
 #include <algorithm>
 
+// #include "BiquadResonatorBank.h"
 #include "Excitation.h"
 #include "MoogVcf.h"
-#include "NonlinearMembrane.h"
-#include "RectangularMembrane.h"
-#include "ResonatorBank.h"
+// #include "NonlinearMembrane.h"
+// #include "RectangularMembrane.h"
+#include "RectangularMembraneBq.h"
+#include "PitchGlide.h"
+// #include "ResonatorBank.h"
 
 // Browser-based GUI to adjust parameters
 Gui gGui;
 GuiController gGuiController;
 
 // Browser-based oscilloscope to visualise signal
-Scope gScope;
+// Scope gScope;
 
 // resonator objects
 
-RectangularMembrane gRectM;
+// RectangularMembrane gRectM;
+RectangularMembraneBq gRectMBq;
 
-NonlinearMembrane gNlinM;
-// ResonatorBank gResBank;
+// NonlinearMembrane gNlinM;
+BiquadResonatorBank gResBank;
 PitchGlide gPitchGlide;
 
 ADSR envelope;  // ADSR envelope
@@ -59,21 +63,28 @@ float gNoiseInterval = 2000.0;  // ms
 // samples ellapsed since last accelerometer measurement
 int gSampleCounter = 0;
 
+// std::vector<float> freqsinit{100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};
+
 // Setup
 bool setup(BelaContext *context, void *userData) {
-  gRectM.setup(context->audioSampleRate, 10, 0.9999f, 0.00001f);
-  gNlinM.setup(context->audioSampleRate, 10, 0.9999f, 0.00001f);
+
+  rt_printf("############ Start setup #####################\n");
+
+  
+  // gRectM.setup(context->audioSampleRate, 30, 0.9999f, 0.00001f);
+  gRectMBq.setup(context->audioSampleRate, 30, 30.0f, 2.0f);
+  // gNlinM.setup(context->audioSampleRate, 15, 0.9999f, 0.00001f);
   gPitchGlide.setup(500.0, 0.01);
 
-  //   std::vector<float> freqs(100, 0.0);
-  //   std::vector<float> decays(100, 0.9999);
-  //   gResBank.setup(context->audioSampleRate, freqs, decays);
+  // std::vector<float> resonances(10, 20);
+  // std::vector<float> gains(10, -5.0);
+  // gResBank.setup(context->audioSampleRate, freqsinit, resonances, gains);
 
   gNoiseIn.setup(context->audioSampleRate, gNoiseLength, 5.0f);
   //   rt_printf("Length ms: %f \n", gNoiseIn.getLengthMs());
 
   // Initialize the filter
-  gFilter.setup(context->audioSampleRate, 1000.0, 0.0, "lp4", true);
+  gFilter.setup(context->audioSampleRate, 1000.0, 0.0, "bp2", true);
   // Set up the GUI
   gGui.setup(context->projectName);
   gGuiController.setup(&gGui, "Oscillator and Filter Controls");
@@ -86,38 +97,40 @@ bool setup(BelaContext *context, void *userData) {
 
   // Arguments: name, default value, minimum, maximum, increment
   // Create sliders for oscillator and filter settings
-  gGuiController.addSlider("Sqrt(Num Partials)", 10, 5, 20, 1);
-  gGuiController.addSlider("Input Amplitude", 0.01, 0, 1.0, 0.01);
+  gGuiController.addSlider("Num Partials per dim", 5, 1, 15, 1);
+  gGuiController.addSlider("Input Amplitude", 5.0, 0, 20.0, 0.01);
   gGuiController.addSlider("Fundmental Frequency", 30, 20, 500, 1);
-  gGuiController.addSlider("Max Decay", 0.5, 0.0, 1.0, 0.01);
-  gGuiController.addSlider("Slope Decay", 0.5, 0.0, 1.0, 0.01);
+  gGuiController.addSlider("Gain Max (dB)", 50.0, 0.0, 80, 0.1);
+  gGuiController.addSlider("Gain Slope (dB/(fpar/ffun-1))", 0.5, 0.0, 5.0,
+                           0.01);
   gGuiController.addSlider("Aspect Ratio Lx/Ly", 0.5, 0.0, 1.0, 0.01);
-  gGuiController.addSlider("Input Length (ms)", 5, 0.0, 20, 0.1);
+  gGuiController.addSlider("Input Length (ms)", 5, 0.0, 200, 0.1);
   gGuiController.addSlider("Input ExpCoeff", 10.0, 5.0, 20.0, 0.1);
-  gGuiController.addSlider("Pitch Glide", 500.0, 0.0, 150000.0, 100.0);
-  gGuiController.addSlider("Filter Resonance", 0.9, 0.0, 1.1, 0.1);
-  gGuiController.addSlider("Filter Type", 1, 1, 6, 1);
+  gGuiController.addSlider("Pitch Glide", 0.0, 0.0, 2.0, 0.01);
+  gGuiController.addSlider("Filter Resonance", 0.9, 0.7, 1.0, 0.01);
+  gGuiController.addSlider("Filter Type", 4, 1, 6, 1);
   gGuiController.addSlider("Attack time (s)", 0.1, 0.0, 0.5, 0.01);
   gGuiController.addSlider("Decay time (s)", 0.25, 0.0, 0.5, 0.01);
   gGuiController.addSlider("Release time (s)", 0.25, 0.0, 0.5, 0.01);
   gGuiController.addSlider("Sustain Level", 1.0, 0.0, 1.0, 0.01);
   gGuiController.addSlider("ADSR gate off (ms)", 100, 10, 1000, 1.0);
-  gGuiController.addSlider("Pitch Glide exp factor", 0.1, 0.0, 0.1, 0.001);
-  //   rt_printf("After Gui setup \n");
+  gGuiController.addSlider("Pitch Glide exp factor", 0.1, 0.0, 1.0, 0.001);
+  gGuiController.addSlider("Filterbank Resonance", 100.0, 50.0, 300.0, 1.0);
+    rt_printf("After Gui setup \n");
   // Set up the scope
-  gScope.setup(2, context->audioSampleRate);
+  // gScope.setup(2, context->audioSampleRate);
 
   return true;
 }
 
 void render(BelaContext *context, void *userData) {
   float gOutMax = 0.0;
-  // Read the slider values
+  // // Read the slider values
   float npar = gGuiController.getSliderValue(0);
   float inAmplitude = gGuiController.getSliderValue(1);
   float resFrequency = gGuiController.getSliderValue(2);
-  float maxDecay = gGuiController.getSliderValue(3);
-  float slopeDecay = gGuiController.getSliderValue(4);
+  float maxGain = gGuiController.getSliderValue(3);
+  float slopeGain = gGuiController.getSliderValue(4);
   float ratio = gGuiController.getSliderValue(5);
   float inLength = gGuiController.getSliderValue(6);
   float expCoeff = gGuiController.getSliderValue(7);
@@ -130,49 +143,21 @@ void render(BelaContext *context, void *userData) {
   gSustain = gGuiController.getSliderValue(14);
   float gateTime = gGuiController.getSliderValue(15);
   float expFactor = gGuiController.getSliderValue(16);
+  float resonance = gGuiController.getSliderValue(17);
 
-  // Set ADSR parameters
-  envelope.setAttackRate(gAttack * context->audioSampleRate);
-  envelope.setDecayRate(gDecay * context->audioSampleRate);
-  envelope.setReleaseRate(gRelease * context->audioSampleRate);
-  envelope.setSustainLevel(gSustain);
+  // // Set ADSR parameters
+  // envelope.setAttackRate(gAttack * context->audioSampleRate);
+  // envelope.setDecayRate(gDecay * context->audioSampleRate);
+  // envelope.setReleaseRate(gRelease * context->audioSampleRate);
+  // envelope.setSustainLevel(gSustain);
 
-  inAmplitude = map(inAmplitude, 0.0, 1.0, 0.0, 0.1);
-  slopeDecay = map(slopeDecay, 0.0, 1.0, 0.0, 0.000003);
-  maxDecay = map(maxDecay, 0.0, 1.0, 0.9999, 1.0);
-  // rt_printf("After Gui reads \n");
+  // inAmplitude = map(inAmplitude, 0.0, 1.0, 0.0, 0.01);
+  // slopeDecay = map(slopeDecay, 0.0, 1.0, 0.0, 0.000003);
+  // maxDecay = map(maxDecay, 0.0, 1.0, 0.9999, 1.0);
 
-  // Check for changes to avoid unnecesary computations
-  if (gRectM.getNumPartials() != npar) {
-    gRectM.setNumPartials(npar);
-  }
-  if (gRectM.getFundamentalFrequencyHz() != resFrequency) {
-    gRectM.setFundamentalFrequencyHz(resFrequency);
-  }
-  if (gRectM.getDecayMax() != maxDecay) {
-    gRectM.setDecayMax(maxDecay);
-  }
-  if (gRectM.getDecaySlope() != slopeDecay) {
-    gRectM.setDecaySlope(slopeDecay);
-  }
-  if (gRectM.getLengthRatio() != ratio) {
-    gRectM.setLengthRatio(ratio);
-  }
+  // // rt_printf("After Gui reads \n");
 
-  if (gNoiseIn.getAmplitude() != inAmplitude) {
-    gNoiseIn.setAmplitude(inAmplitude);
-  }
-  gNoiseIn.setLengthMs(inLength);
-  gNoiseIn.setExponentialCoefficient(expCoeff);
-  //   rt_printf("After if checks \n");
-
-  if (gPitchGlide.getPitchGlideFactor() != glideFactor) {
-    gPitchGlide.setPitchGlideFactor(glideFactor);
-  }
-  if (gPitchGlide.getExpFactor() != expFactor) {
-    gPitchGlide.setExpFactor(expFactor);
-  }
-  //   gNlinM.setFundamentalFrequencyHz(gNlinM.applyPitchGlide(gOutMax,gNlinM.getFundamentalFrequencyHz()));
+  // // Check for changes to avoid unnecesary computations
 
   for (unsigned int n = 0; n < context->audioFrames; n++) {
     float timeElapsedMilliseconds =
@@ -184,77 +169,85 @@ void render(BelaContext *context, void *userData) {
     float noise = 0.0;
     float out = 0.0;
     if (timeElapsedMilliseconds > gNoiseInterval) {
-      // 	if (gNlinM.getPitchGlideFactor() != glideFactor) {
-      //     gNlinM.setPitchGlideFactor(glideFactor);
-      //   }
+      if (gNoiseIn.getAmplitude() != inAmplitude) {
+        gNoiseIn.setAmplitude(inAmplitude);
+      }
+      gNoiseIn.setLengthMs(inLength);
+      gNoiseIn.setExponentialCoefficient(expCoeff);
+      if (gRectMBq.getFundamentalFrequencyHz() != resFrequency) {
+        gRectMBq.setFundamentalFrequencyHz(resFrequency);
+      }
+      if (gRectMBq.getLengthRatio() != ratio) {
+        gRectMBq.setLengthRatio(ratio);
+      }
 
-      //   rt_printf(
-      //       "################################ PARAM "
-      //       "############################## \n");
-      //   rt_printf("Fundamental Frequency: %f   \n", resFrequency);
-      //   rt_printf("Lx/Ly ratio: %f   \n", ratio);
-      //   rt_printf("Amplitude In: %f   \n", inAmplitude);
-      //   rt_printf(
-      //       "################################ NLIN  "
-      //       "############################## \n");
+      if (gRectMBq.getNumPartialsPerDim() != npar) {
+        gRectMBq.setNumPartialsPerDim(npar);
+      }
 
-      //   rt_printf("Max Out: %f   \n", gOutMax);
-      //   std::vector<float> freqs = gNlinM.getFrequenciesHz();
-      //   float fmax = *max_element(std::begin(freqs), std::end(freqs));
-      //   //   std::vector<float> decs = gNlinM.getDecays();
-      //   //   float decmax = *max_element(std::begin(decs), std::end(decs));
-      //   rt_printf("freq0: %f \n", freqs[0]);
-      //   rt_printf("freqMax: %f \n", fmax);
-      //   rt_printf("Numpar: %i \n", gNlinM.getNumPartials());
-      //   rt_printf("resBank Size: %i \n", gNlinM.getSize());
-      //   rt_printf("Decays size: %i \n", gNlinM.getDecays().size());
-      //   rt_printf("Frequencies size: %i \n", freqs.size());
-      //   rt_printf("Pitchglide: %f \n", gNlinM.getPitchGlideFactor());
+      if (gRectMBq.getGainDbMax() != maxGain) {
+        gRectMBq.setGainDbMax(maxGain);
+      }
+      if (gRectMBq.getGainDbSlope() != slopeGain) {
+        gRectMBq.setGainDbSlope(slopeGain);
+      }
+      if (gRectMBq.getResonance() != resonance) {
+        gRectMBq.setResonance(resonance);
+      }
 
-      //   rt_printf(
-      //       "################################ RECT  "
-      //       "############################## \n");
+      rt_printf(
+          "################################ PARAM "
+          "############################## \n");
+      rt_printf("Fundamental Frequency: %f   \n", resFrequency);
+      rt_printf("Lx/Ly ratio: %f   \n", ratio);
+      rt_printf("Amplitude In: %f   \n", inAmplitude);
+      rt_printf(
+          "################################ MEMBQ  "
+          "############################## \n");
 
-      //   // rt_printf("Max Out: %f   \n", gOutMax);
-      //   freqs = gRectM.getFrequenciesHz();
-      //   fmax = *max_element(std::begin(freqs), std::end(freqs));
-      //   //   std::vector<float> decs = gRectM.getDecays();
-      //   //   float decmax = *max_element(std::begin(decs), std::end(decs));
-      //   rt_printf("freq0: %f \n", freqs[0]);
-      //   rt_printf("freqMax: %f \n", fmax);
-      //   rt_printf("Numpar: %i \n", gRectM.getNumPartials());
-      //   rt_printf("resBank Size: %i \n", gRectM.getSize());
-      //   rt_printf("Decays size: %i \n", gRectM.getDecays().size());
-      //   rt_printf("Frequencies size: %i \n", freqs.size());
+      rt_printf("Max Out: %f   \n", gOutMax);
+      std::vector<float> freqs = gRectMBq.getFrequenciesHz();
+      float fmax = *max_element(std::begin(freqs), std::end(freqs));
+      rt_printf("freq0: %f \n", freqs[0]);
+      rt_printf("freqMax: %f \n", fmax);
+      rt_printf("Numpar: %i \n", gRectMBq.getNumPartialsPerDim());
 
-      //   std::vector<float> decs = gRectM.getDecays();
-      //   gResBank.setFrequenciesHz(freqs);
-      //   gResBank.setDecays(decs);
-      //   gRectM.setFrequenciesHz(freqs);
-      //   gRectM.setDecays(decs);
+      rt_printf("resBank Size: %i \n", gRectMBq.getSize());
+      rt_printf("Resonances size: %i \n", gRectMBq.getResonances().size());
+      rt_printf("gains size: %i \n", gRectMBq.getGainsDb().size());
+      rt_printf("Frequencies size: %i \n", freqs.size());
+      // rt_printf("Pitchglide: %f \n", gRectMBq.getPitchGlideFactor());
 
-      envelope.gate(true);
-      gGateStatus = 1;
+      //     rt_printf(
+      //         "################################ RECT  "
+      //         "############################## \n");
 
-      //   if (gNlinM.getNumPartials() != npar) {
-      //     gNlinM.setNumPartials(npar);
-      //   }
-      //   if (gNlinM.getFundamentalFrequencyHz() != resFrequency) {
-      //     gNlinM.setFundamentalFrequencyHz(resFrequency);
-      //   }
-      //   if (gNlinM.getDecayMax() != maxDecay) {
-      //     gNlinM.setDecayMax(maxDecay);
-      //   }
-      //   if (gNlinM.getDecaySlope() != slopeDecay) {
-      //     gNlinM.setDecaySlope(slopeDecay);
-      //   }
-      //   if (gNlinM.getLengthRatio() != ratio) {
-      //     gNlinM.setLengthRatio(ratio);
-      //   }
+      //     rt_printf("Max Out: %f   \n", gOutMax);
+      // std::vector<float> freqs = gRectM.getFrequenciesHz();
+      //     float fmax = *max_element(std::begin(freqs), std::end(freqs));
+      //     //   std::vector<float> decs = gRectM.getDecays();
+      //     //   float decmax = *max_element(std::begin(decs),
+      //     std::end(decs)); rt_printf("freq0: %f \n", freqs[0]);
+      //     rt_printf("freqMax: %f \n", fmax);
+      //     rt_printf("Numpar: %i \n", gRectM.getNumPartialsPerDim());
+      //     rt_printf("resBank Size: %i \n", gRectM.getSize());
+      //     rt_printf("Decays size: %i \n", gRectM.getDecays().size());
+      //     rt_printf("Frequencies size: %i \n", freqs.size());
 
-      gFilter.setFilterConfiguration(gConfigs[(int)filterType]);
+      //     //   std::vector<float> decs = gRectM.getDecays();
+      //       gResBank.setFrequenciesHz(freqs);
+      //     //   gResBank.setDecays(decs);
+      //     //   gRectM.setFrequenciesHz(freqs);
+      //     //   gRectM.setDecays(decs);
 
-      //   gOutMax = 0.0;
+      //     envelope.gate(true);
+      //     gGateStatus = 1;
+
+      //     gFilter.setFilterConfiguration(gConfigs[(int)filterType]);
+      // gResBank.setFrequenciesHz(freqs);
+      // gResBank.setGainsDb(maxGain);
+      // gResBank.setResonances(npar);
+      gOutMax = 0.0;
       gNoiseIn.trigger();
       //   rt_printf("Triggered \n");
       noise = gNoiseIn.process();
@@ -269,28 +262,31 @@ void render(BelaContext *context, void *userData) {
       gSampleCounter++;
     }
 
-    // Set cutoff frequency for the filter
+    //   // Set cutoff frequency for the filter
 
-    gFilter.setFrequencyHz(
-        gPitchGlide.applyPitchGlide(noise, gRectM.getFundamentalFrequencyHz()));
-    if (gFilter.getFrequencyHz() != gRectM.getFundamentalFrequencyHz()) {
-      rt_printf("Filter Freq: %f \n", gFilter.getFrequencyHz());
-    }
+    //   // gFilter.setFrequencyHz(
+    //   //     gPitchGlide.applyPitchGlide(noise,
+    //   gRectM.getFundamentalFrequencyHz()));
+    //   // if (gFilter.getFrequencyHz() !=
+    //   gRectM.getFundamentalFrequencyHz())
+    //   {
+    //   //   rt_printf("Filter Freq: %f \n", gFilter.getFrequencyHz());
+    //   // }
 
-    // Set resonance for the filter
-    gFilter.setResonance(filterResonance * envelope.process());
+    //   // Set resonance for the filter
+    //   // gFilter.setResonance(filterResonance * envelope.process());
     // out = gResBank.process(noise);
-    out = gRectM.process(noise);
-    // out = gNlinM.process(noise);
-
-    // Debug
+    out = gRectMBq.process(noise);
+    //   // out = gNlinM.process(noise);
+    //   // rt_printf("Out: %f   \n", out);
+    //   // Debug
     if (fabs(out) > gOutMax) {
       gOutMax = fabs(out);
     }
     out = tanhf_neon(out);
-    out = gFilter.process(out);
-    // rt_printf("Envelope state: %i \n", envelope.getState());
-    // out = 0.0;
+    //   // out = gFilter.process(out);
+    //   // rt_printf("Envelope state: %i \n", envelope.getState());
+    //   // out = 0.0;
     // Debug
     // float out = 0.0;
     // float noise = 0.0;
@@ -300,7 +296,7 @@ void render(BelaContext *context, void *userData) {
       audioWrite(context, n, channel, out);
     }
 
-    gScope.log(noise, out);
+    // gScope.log(noise, out);
   }
 }
 

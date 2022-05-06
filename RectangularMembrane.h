@@ -10,12 +10,12 @@ class RectangularMembrane : public ResonatorBank {
   // constructors
   RectangularMembrane() {}  // Default constructor
   RectangularMembrane(float sampleRate, float fundamentalFrequencyHz,
-                      float decayMax, float decaySlope, int numPartials = 10,
+                      float decayMax, float decaySlope, int numPartialsPerDim = 10,
                       float lengthRatio = 0.5);
 
   // Set parameters
   void setup(float sampleRate, float fundamentalFrequencyHz, float decayMax,
-             float decaySlope, int numPartials = 10, float lengthRatio = 0.5);
+             float decaySlope, int numPartialsPerDim = 10, float lengthRatio = 0.5);
 
   void setFundamentalFrequencyHz(float f);
   float getFundamentalFrequencyHz();
@@ -25,8 +25,8 @@ class RectangularMembrane : public ResonatorBank {
   float getDecaySlope();
   void setLengthRatio(float lengthRatio);
   float getLengthRatio();
-  void setNumPartials(int numPartials);
-  int getNumPartials();
+  void setNumPartialsPerDim(int numPartialsPerDim);
+  int getNumPartialsPerDim();
 
   // float process(float in);  // Process sample
 
@@ -36,7 +36,7 @@ class RectangularMembrane : public ResonatorBank {
   float fundamentalFrequencyHz_;
   float decayMax_;
   float decaySlope_;
-  int numPartials_;
+  int numPartialsPerDim_;
   float lengthRatio_;
   std::vector<float> calculate_frequencies_(int n, int m);
   std::vector<float> calculate_decays_(std::vector<float>& frequencies);
