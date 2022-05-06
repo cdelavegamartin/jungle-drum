@@ -1,9 +1,9 @@
 
 #include "RectangularMembraneBq.h"
 
-// #include <Bela.h>
+#include <libraries/math_neon/math_neon.h>
 
-#include <algorithm>
+// #include <algorithm>
 #include <cmath>
 #include <vector>
 
@@ -30,109 +30,134 @@ void RectangularMembraneBq::setup(float sampleRate,
   numPartialsPerDim_ = numPartialsPerDim;
   lengthRatio_ = lengthRatio;
 
-  std::vector<float> frequencies =
-      calculate_frequencies_(numPartialsPerDim_, numPartialsPerDim_);
-  std::vector<float> gainsDb = calculate_gainsDb_(frequencies);
+  normFrequencies_ =
+      calculate_normalized_frequencies_(numPartialsPerDim_, lengthRatio_);
+  update_log2frequencies_();
 
-  BiquadResonatorBank::setup(sampleRate_, frequencies, resonance_, gainsDb);
+  BiquadResonatorBank::setup(
+      sampleRate_,
+      calculate_frequencies_(fundamentalFrequencyHz_, normFrequencies_),
+      resonance_, calculate_gainsDb_());
 }
 
-std::vector<float> RectangularMembraneBq::calculate_frequencies_(int n, int m) {
-  std::vector<float> freqs(n * m, 0.0);
+// Helper Functions
 
-  float r2 = powf(lengthRatio_, 2);
-  float B2 = ((r2 + 1) / r2);
-  float A2 = r2 + 1;
-  // float fPrev = 0.0;
-  // for (int i = 0; i < n; i++) {
-  //   for (int j = 0; j < m; j++) {
-  //     float coeff =
-  //         sqrtf(powf((float)(i + 1), 2) / A2 + powf((float)(j + 1), 2) / B2);
-  //     float f = coeff * fundamentalFrequencyHz_;
-  //     if (fabs(f - fPrev) > 0.0000001) {
-  //       freqs[i * m + j] = f;
-  //     } else {
-  //       freqs[i * m + j] = sampleRate_;
-  //     }
-  //     fPrev = f;
-  //   }
-  // }
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < m; j++) {
-      float coeff =
-          sqrtf(powf((float)(i + 1), 2) / A2 + powf((float)(j + 1), 2) / B2);
-      float f = coeff * fundamentalFrequencyHz_;
-      freqs[i * m + j] = f;
+// Calculate the normalized frequencies. Most computationally intensive task
+std::vector<float> RectangularMembraneBq::calculate_normalized_frequencies_(
+    int numParDim, float lengthRatio) {
+  std::vector<float> normFreqs(numParDim * numParDim, 0.0);
+
+  float r2 = lengthRatio * lengthRatio;
+  float C = 1.0f / (r2 + 1.0f);
+
+  for (int i = 0; i < numParDim; i++) {
+    for (int j = 0; j < numParDim; j++) {
+      normFreqs[i * numParDim + j] = sqrtf_neon(
+          C * ((float)((i + 1) * (i + 1)) + r2 * (float)((j + 1) * (j + 1))));
     }
   }
-  return freqs;
+  return normFreqs;
 }
 
-std::vector<float> RectangularMembraneBq::calculate_gainsDb_(
-    const std::vector<float>& frequencies) {
-  auto nRes = frequencies.size();
+// Update auxiliary vector log2(normFreq) 
+void RectangularMembraneBq::update_log2frequencies_() {
+  normFrequenciesLog2_.resize(normFrequencies_.size());
+  for (int i = 0; i < normFrequencies_.size(); i++) {
+    normFrequenciesLog2_[i] = log2f(normFrequencies_[i]);
+  }
+}
 
-  std::vector<float> gainsDb(nRes, 0.0);
-  for (int i = 0; i < nRes; i++) {
-    gainsDb[i] =
-        gainDbMax_ -
-        gainDbSlope_ * (frequencies[i] / fundamentalFrequencyHz_ - 1.0f);
+// Calculate the actual partial frequencies
+std::vector<float> RectangularMembraneBq::calculate_frequencies_(
+    const float fundamental, const std::vector<float>& normFrequencies) {
+  std::vector<float> frequencies = normFrequencies;
+
+  for (int i = 0; i < frequencies.size(); i++) {
+    frequencies[i] = fundamental * frequencies[i];
+  }
+  return frequencies;
+}
+
+// Calculate ResonatorBank gains
+std::vector<float> RectangularMembraneBq::calculate_gainsDb_() {
+  std::vector<float> gainsDb(normFrequenciesLog2_.size());
+  for (int i = 0; i < normFrequenciesLog2_.size(); i++) {
+    gainsDb[i] = gainDbMax_ - gainDbSlope_ * normFrequenciesLog2_[i];
   }
   return gainsDb;
 }
 
-// float RectangularMembraneBq::process(float in) {
-//   return BiquadResonatorBank::process(in);
-// }
-
-// Helper functions
-void RectangularMembraneBq::update_gainsDb() {
-  std::vector<float> freqs = getFrequenciesHz();
-  std::vector<float> gainsDb = calculate_gainsDb_(freqs);
-  setGainsDb(gainsDb);
-}
-
+// Update the auxiliary internal vectors and the ResonatorsBank frequencies and
+// gains
 void RectangularMembraneBq::update_freqs_and_gainsDb() {
-  std::vector<float> frequencies =
-      calculate_frequencies_(numPartialsPerDim_, numPartialsPerDim_);
-  std::vector<float> gainsDb = calculate_gainsDb_(frequencies);
-  setFrequenciesHz(frequencies);
-  setGainsDb(gainsDb);
-  setResonances(resonance_);
+  normFrequencies_ =
+      calculate_normalized_frequencies_(numPartialsPerDim_, lengthRatio_);
+  update_log2frequencies_();
+  setFrequenciesHz(
+      calculate_frequencies_(fundamentalFrequencyHz_, normFrequencies_));
+  setGainsDb(calculate_gainsDb_());
 }
 
-// Accesors
+// Setters
+// They all use checks to make sure the calculations are only done if the values
+// have changed
 void RectangularMembraneBq::setFundamentalFrequencyHz(const float f) {
-  fundamentalFrequencyHz_ = f;
-  update_freqs_and_gainsDb();
+  if (fundamentalFrequencyHz_ != f) {
+    fundamentalFrequencyHz_ = f;
+    setFrequenciesHz(
+        calculate_frequencies_(fundamentalFrequencyHz_, normFrequencies_));
+  }
 }
 
 void RectangularMembraneBq::setLengthRatio(const float l) {
-  lengthRatio_ = l;
-  update_freqs_and_gainsDb();
+  if (lengthRatio_ != l) {
+    lengthRatio_ = l;
+    update_freqs_and_gainsDb();
+  }
 }
 
 void RectangularMembraneBq::setNumPartialsPerDim(const int num) {
-  numPartialsPerDim_ = num;
-  update_freqs_and_gainsDb();
+  if (numPartialsPerDim_ != num) {
+    numPartialsPerDim_ = num;
+    update_freqs_and_gainsDb();
+  }
 }
 
 void RectangularMembraneBq::setGainDbMax(const float g) {
-  gainDbMax_ = g;
-  update_gainsDb();
+  if (gainDbMax_ != g) {
+    float gainDiff = g - gainDbMax_;
+    gainDbMax_ = g;
+    for (int i = 0; i < gainsDb_.size(); i++) {
+      gainsDb_[i] = gainsDb_[i] + gainDiff;
+    }
+  }
 }
 
 void RectangularMembraneBq::setGainDbSlope(const float s) {
-  gainDbSlope_ = s;
-  update_gainsDb();
+  if (gainDbSlope_ != s) {
+    gainDbSlope_ = s;
+    setGainsDb(calculate_gainsDb_());
+  }
 }
 
 void RectangularMembraneBq::setResonance(const float r) {
-  resonance_ = r;
-  setResonances(resonance_);
+  if (resonance_ != r) {
+    resonance_ = r;
+    setResonances(resonance_);
+  }
 }
 
-// Get the resonator frequency
+// Only used in case the calculation is delegated to another thread
+void RectangularMembraneBq::setNormFrequencies(
+    const std::vector<float>& normFrequencies) {
+  normFrequencies_ = normFrequencies;
+  update_log2frequencies_();
+  setFrequenciesHz(
+      calculate_frequencies_(fundamentalFrequencyHz_, normFrequencies_));
+  setGainsDb(calculate_gainsDb_());
+}
+
+// Getters
 float RectangularMembraneBq::getFundamentalFrequencyHz() {
   return fundamentalFrequencyHz_;
 }

@@ -26,7 +26,7 @@ Gui gGui;
 GuiController gGuiController;
 
 // Browser-based oscilloscope to visualise signal
-Scope gScope;
+// Scope gScope;
 
 // resonator objects
 
@@ -63,18 +63,22 @@ float gNoiseInterval = 2000.0;  // ms
 // samples ellapsed since last accelerometer measurement
 int gSampleCounter = 0;
 
-std::vector<float> freqsinit{100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};
+// std::vector<float> freqsinit{100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};
 
 // Setup
 bool setup(BelaContext *context, void *userData) {
+
+  rt_printf("############ Start setup #####################\n");
+
+  
   // gRectM.setup(context->audioSampleRate, 30, 0.9999f, 0.00001f);
   gRectMBq.setup(context->audioSampleRate, 30, 30.0f, 2.0f);
   // gNlinM.setup(context->audioSampleRate, 15, 0.9999f, 0.00001f);
   gPitchGlide.setup(500.0, 0.01);
 
-  std::vector<float> resonances(10, 20);
-  std::vector<float> gains(10, -5.0);
-  gResBank.setup(context->audioSampleRate, freqsinit, resonances, gains);
+  // std::vector<float> resonances(10, 20);
+  // std::vector<float> gains(10, -5.0);
+  // gResBank.setup(context->audioSampleRate, freqsinit, resonances, gains);
 
   gNoiseIn.setup(context->audioSampleRate, gNoiseLength, 5.0f);
   //   rt_printf("Length ms: %f \n", gNoiseIn.getLengthMs());
@@ -112,9 +116,9 @@ bool setup(BelaContext *context, void *userData) {
   gGuiController.addSlider("ADSR gate off (ms)", 100, 10, 1000, 1.0);
   gGuiController.addSlider("Pitch Glide exp factor", 0.1, 0.0, 1.0, 0.001);
   gGuiController.addSlider("Filterbank Resonance", 100.0, 50.0, 300.0, 1.0);
-  //   rt_printf("After Gui setup \n");
+    rt_printf("After Gui setup \n");
   // Set up the scope
-  gScope.setup(2, context->audioSampleRate);
+  // gScope.setup(2, context->audioSampleRate);
 
   return true;
 }
@@ -292,7 +296,7 @@ void render(BelaContext *context, void *userData) {
       audioWrite(context, n, channel, out);
     }
 
-    gScope.log(noise, out);
+    // gScope.log(noise, out);
   }
 }
 

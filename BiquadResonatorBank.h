@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "BiquadFloat.h"
+
 class BiquadResonatorBank {
  public:
   BiquadResonatorBank() {}  // Default constructor
@@ -42,13 +43,13 @@ class BiquadResonatorBank {
 
   ~BiquadResonatorBank() {}  // Destructor
  protected:
-  float sampleRate_;  // audio sample rate
-
- private:
+  float sampleRate_;                            // audio sample rate
   std::vector<Biquad>::size_type nResonators_;  // number of resonators
   std::vector<float> frequenciesHz_;  // Frequency of the BiquadResonatorBank
   std::vector<float> resonances_;     // Decay of the BiquadResonatorBank
   std::vector<float> gainsDb_;        // Decay of the BiquadResonatorBank
+
+ private:
   std::vector<Biquad> resonators_;
   Biquad::Settings settings_;
 };

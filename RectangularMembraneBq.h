@@ -10,26 +10,29 @@ class RectangularMembraneBq : public BiquadResonatorBank {
   // constructors
   RectangularMembraneBq() {}  // Default constructor
   RectangularMembraneBq(float sampleRate, float fundamentalFrequencyHz,
-                      float gainDbMax, float gainDbSlope, float resonance = 100,
-                      int numPartialsPerDim = 10, float lengthRatio = 0.5);
+                        float gainDbMax, float gainDbSlope,
+                        float resonance = 100, int numPartialsPerDim = 10,
+                        float lengthRatio = 0.5);
 
   // Set parameters
   void setup(float sampleRate, float fundamentalFrequencyHz, float gainDbMax,
-             float gainDbSlope, float resonance = 100, int numPartialsPerDim = 10,
-             float lengthRatio = 0.5);
+             float gainDbSlope, float resonance = 100,
+             int numPartialsPerDim = 10, float lengthRatio = 0.5);
 
   void setFundamentalFrequencyHz(float f);
   float getFundamentalFrequencyHz();
-  void setGainDbMax(float gainDbMax);
+  void setGainDbMax(const float gainDbMax);
   float getGainDbMax();
-  void setGainDbSlope(float gainDbSlope);
+  void setGainDbSlope(const float gainDbSlope);
   float getGainDbSlope();
-  void setResonance(float resonance);
+  void setResonance(const float resonance);
   float getResonance();
-  void setLengthRatio(float lengthRatio);
+  void setLengthRatio(const float lengthRatio);
   float getLengthRatio();
-  void setNumPartialsPerDim(int numPartialsPerDim);
+  void setNumPartialsPerDim(const int numPartialsPerDim);
   int getNumPartialsPerDim();
+  void setNormFrequencies(const std::vector<float>& normFrequencies);
+  std::vector<float> getNormFrequencies();
 
   // float process(float in);  // Process sample
 
@@ -42,8 +45,16 @@ class RectangularMembraneBq : public BiquadResonatorBank {
   float resonance_;
   int numPartialsPerDim_;
   float lengthRatio_;
-  std::vector<float> calculate_frequencies_(int n, int m);
-  std::vector<float> calculate_gainsDb_(const std::vector<float>& frequencies);
-  void update_gainsDb();
+  std::vector<float> normFrequencies_;
+  std::vector<float> normFrequenciesLog2_;
+
+  std::vector<float> calculate_normalized_frequencies_(const int numParDim,
+                                                       const float lengthRatio);
+  std::vector<float> calculate_frequencies_(
+      const float fundamental, const std::vector<float>& normFrequencies);
+  std::vector<float> calculate_gainsDb_();
+  void update_log2frequencies_();
+
+  // void update_gainsDb();
   void update_freqs_and_gainsDb();
 };
