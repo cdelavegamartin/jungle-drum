@@ -1,17 +1,15 @@
 #include "Excitation.h"
 
-#include <Bela.h>
-
-#include <algorithm>
 #include <cmath>
 
-Excitation::Excitation(float sampleRate, float lengthMs) {
-  setup(sampleRate, lengthMs);
+Excitation::Excitation(float sampleRate, float amplitude, float lengthMs) {
+  setup(sampleRate, amplitude, lengthMs);
 }
 
-void Excitation::setup(float sampleRate, float lengthMs) {
+void Excitation::setup(float sampleRate, float amplitude, float lengthMs) {
   sampleRate_ = sampleRate;
   lengthMsNew_ = lengthMs;
+  amplitude_ = amplitude;
   trigger();
 }
 
@@ -40,8 +38,9 @@ void Excitation::reset_read_pos_() { readPosition_ = 0.0; }
 float Excitation::process() {
   float out = 0.0;
   if (readPosition_ < 1.0) {
-    out = amplitude_ *0.5f * (1.0f + cosf((float)M_PI *(2.0f*readPosition_ -1.0f)));
-  
+    out = amplitude_ * 0.5f *
+          (1.0f + cosf((float)M_PI * (2.0f * readPosition_ - 1.0f)));
+
     readPosition_ += step_;
   }
 
