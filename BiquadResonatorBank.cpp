@@ -5,8 +5,9 @@
 
 #include <cmath>
 // #include <iostream>
-#include <algorithm>
+// #include <algorithm>
 #include <vector>
+#include <libraries/math_neon/math_neon.h>
 
 // Constructor taking arguments for sample rate and table data
 BiquadResonatorBank::BiquadResonatorBank(
@@ -129,6 +130,6 @@ float BiquadResonatorBank::process(const float in) {
   for (int i = 0; i < nResonators_; i++) {
     out += resonators_[i].process(in);
   }
-  out /= ((float)nResonators_);
+  out /= sqrtf_c((float)nResonators_);
   return out;
 }
