@@ -59,7 +59,7 @@ std::vector<float> RectangularMembraneBq::calculate_normalized_frequencies_(
   return normFreqs;
 }
 
-// Update auxiliary vector log2(normFreq) 
+// Update auxiliary vector log2(normFreq)
 void RectangularMembraneBq::update_log2frequencies_() {
   normFrequenciesLog2_.resize(normFrequencies_.size());
   for (int i = 0; i < normFrequencies_.size(); i++) {
