@@ -14,12 +14,16 @@
 
 // #include "BiquadResonatorBank.h"
 #include "Excitation.h"
+#include "JungleDrum.h"
 #include "MoogVcf.h"
 // #include "NonlinearMembrane.h"
 // #include "RectangularMembrane.h"
 #include "RectangularMembraneBq.h"
 #include "PitchGlide.h"
 // #include "ResonatorBank.h"
+#include "PitchGlide.h"
+#include "RectangularMembrane.h"
+#include "ResonatorBank.h"
 
 // Browser-based GUI to adjust parameters
 Gui gGui;
@@ -37,12 +41,14 @@ RectangularMembraneBq gRectMBq;
 BiquadResonatorBank gResBank;
 PitchGlide gPitchGlide;
 
-ADSR envelope;  // ADSR envelope
+// ADSR envelope;  // ADSR envelope
 
 float gAttack = 0.1;   // Envelope attack (seconds)
 float gDecay = 0.25;   // Envelope decay (seconds)
 float gRelease = 0.5;  // Envelope release (seconds)
 float gSustain = 1.0;  // Envelope sustain level
+
+JungleDrum gDrum;
 
 int gGateStatus = 0;  // Env on/off
 
@@ -83,6 +89,7 @@ bool setup(BelaContext *context, void *userData) {
   gNoiseIn.setup(context->audioSampleRate, gNoiseLength, 5.0f);
   //   rt_printf("Length ms: %f \n", gNoiseIn.getLengthMs());
 
+  gDrum.setup(context->audioSampleRate, 21, 0.9999f, 0.00001f);
   // Initialize the filter
   gFilter.setup(context->audioSampleRate, 1000.0, 0.0, "bp2", true);
   // Set up the GUI
@@ -90,10 +97,11 @@ bool setup(BelaContext *context, void *userData) {
   gGuiController.setup(&gGui, "Oscillator and Filter Controls");
 
   // Set ADSR parameters
-  envelope.setAttackRate(gAttack * context->audioSampleRate);
-  envelope.setDecayRate(gDecay * context->audioSampleRate);
-  envelope.setReleaseRate(gRelease * context->audioSampleRate);
-  envelope.setSustainLevel(gSustain);
+  // envelope.setAttackRate(gAttack * context->audioSampleRate);
+  // envelope.setDecayRate(gDecay * context->audioSampleRate);
+  // envelope.setReleaseRate(gRelease * context->audioSampleRate);
+  // envelope.setSustainLevel(gSustain);
+  // envelope.setTargetRatioDR(100.0);
 
   // Arguments: name, default value, minimum, maximum, increment
   // Create sliders for oscillator and filter settings
@@ -128,9 +136,12 @@ void render(BelaContext *context, void *userData) {
   // // Read the slider values
   float npar = gGuiController.getSliderValue(0);
   float inAmplitude = gGuiController.getSliderValue(1);
-  float resFrequency = gGuiController.getSliderValue(2);
+   float resFrequency = gGuiController.getSliderValue(2);
+  // float midiNote = gGuiController.getSliderValue(2);
+  
   float maxGain = gGuiController.getSliderValue(3);
   float slopeGain = gGuiController.getSliderValue(4);
+ 
   float ratio = gGuiController.getSliderValue(5);
   float inLength = gGuiController.getSliderValue(6);
   float expCoeff = gGuiController.getSliderValue(7);
@@ -248,30 +259,63 @@ void render(BelaContext *context, void *userData) {
       // gResBank.setGainsDb(maxGain);
       // gResBank.setResonances(npar);
       gOutMax = 0.0;
+      // Check for changes to avoid unnecesary computations
+      if (gDrum.getNumPartials() != npar) {
+        gDrum.setNumPartials(npar);
+      }
+      
+      if (gDrum.getDecayMax() != maxDecay) {
+        gDrum.setDecayMax(maxDecay);
+      }
+      if (gDrum.getDecaySlope() != slopeDecay) {
+        gDrum.setDecaySlope(slopeDecay);
+      }
+      if (gDrum.getLengthRatio() != ratio) {
+        gDrum.setLengthRatio(ratio);
+      }
+
+      if (gDrum.getAmplitude() != inAmplitude) {
+        gDrum.setAmplitude(inAmplitude);
+      }
+      gDrum.setLengthMs(inLength);
+      gDrum.setExponentialCoefficient(expCoeff);
+      //   rt_printf("After if checks \n");
+
+      if (gDrum.getPitchGlideFactor() != glideFactor) {
+        gDrum.setPitchGlideFactor(glideFactor);
+      }
+      if (gDrum.getExpFactor() != expFactor) {
+        gDrum.setExpFactor(expFactor);
+      }
+
+      envelope.gate(true);
+      gGateStatus = 1;
+
+      gDrum.setFilterConfiguration(gConfigs[(int)filterType]);
+
+      //   gOutMax = 0.0;
       gNoiseIn.trigger();
       //   rt_printf("Triggered \n");
       noise = gNoiseIn.process();
       gSampleCounter = 0;
     } else if (timeElapsedMilliseconds > gateTime && gGateStatus) {
-      envelope.gate(false);
+      // envelope.gate(false);
+      gDrum.noteOff();
       gGateStatus = 0;
-      noise = gNoiseIn.process();
+      // noise = gNoiseIn.process();
       gSampleCounter++;
     } else {
-      noise = gNoiseIn.process();
+      // noise = gNoiseIn.process();
       gSampleCounter++;
     }
 
     //   // Set cutoff frequency for the filter
 
-    //   // gFilter.setFrequencyHz(
-    //   //     gPitchGlide.applyPitchGlide(noise,
-    //   gRectM.getFundamentalFrequencyHz()));
-    //   // if (gFilter.getFrequencyHz() !=
-    //   gRectM.getFundamentalFrequencyHz())
-    //   {
-    //   //   rt_printf("Filter Freq: %f \n", gFilter.getFrequencyHz());
-    //   // }
+    gFilter.setFrequencyHz(
+        gPitchGlide.applyPitchGlide(noise, gRectM.getFundamentalFrequencyHz()));
+    // if (gFilter.getFrequencyHz() != gRectM.getFundamentalFrequencyHz()) {
+    //   rt_printf("Filter Freq: %f \n", gFilter.getFrequencyHz());
+    // }
 
     //   // Set resonance for the filter
     //   // gFilter.setResonance(filterResonance * envelope.process());
@@ -284,12 +328,8 @@ void render(BelaContext *context, void *userData) {
       gOutMax = fabs(out);
     }
     out = tanhf_neon(out);
-    //   // out = gFilter.process(out);
-    //   // rt_printf("Envelope state: %i \n", envelope.getState());
-    //   // out = 0.0;
-    // Debug
-    // float out = 0.0;
-    // float noise = 0.0;
+    out = gFilter.process(out);
+
     // Write the output to every audio channel
     for (unsigned int channel = 0; channel < context->audioOutChannels;
          channel++) {
