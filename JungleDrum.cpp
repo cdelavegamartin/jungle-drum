@@ -4,25 +4,32 @@
 
 #include <cmath>
 
-JungleDrum::JungleDrum(float sampleRate, int midiNote, float decayMax,
-                       float decaySlope, float pitchGlideFactor,
-                       float expFactor, int numPartialsPerDim, float lengthRatio,
-                       float impulseLengthMs, float filterResonance,
-                       float attackTimeMs, float releaseTimeMs) {
-  setup(sampleRate, midiNote, decayMax, decaySlope, pitchGlideFactor, expFactor,
-        numPartialsPerDim, lengthRatio, impulseLengthMs, filterResonance,
-        attackTimeMs, releaseTimeMs);
+JungleDrum::JungleDrum(float sampleRate, int midiNote, int numPartialsPerDim,
+                       float lengthRatio, float membraneResonance,
+                       float gainDbMax, float gainDbSlope,
+                       float impulseAmplitude, float impulseLengthMs,
+                       float pitchGlideFactor, float expFactor,
+                       float filterResonance, float attackTimeMs,
+                       float releaseTimeMs) {
+  setup(sampleRate, midiNote, numPartialsPerDim, lengthRatio, membraneResonance,
+        gainDbMax, gainDbSlope, impulseAmplitude, impulseLengthMs,
+        pitchGlideFactor, expFactor, filterResonance, attackTimeMs,
+        releaseTimeMs);
 }
 
-void JungleDrum::setup(float sampleRate, int midiNote, float decayMax,
-                       float decaySlope, float pitchGlideFactor,
-                       float expFactor, int numPartialsPerDim, float lengthRatio,
-                       float impulseLengthMs, float filterResonance,
-                       float attackTimeMs, float releaseTimeMs) {
+void JungleDrum::setup(float sampleRate, int midiNote, int numPartialsPerDim,
+                       float lengthRatio, float membraneResonance,
+                       float gainDbMax, float gainDbSlope,
+                       float impulseAmplitude, float impulseLengthMs,
+                       float pitchGlideFactor, float expFactor,
+                       float filterResonance, float attackTimeMs,
+                       float releaseTimeMs) {
   midiNote_ = midiNote;
-  RectangularMembrane::setup(sampleRate, convert_midi_to_hz(), decayMax,
-                             decaySlope, numPartialsPerDim, lengthRatio);
-  Excitation::setup(sampleRate, impulseLengthMs, 15.0);
+  filterResonanceMax_ = filterResonance;
+  RectangularMembraneBq::setup(sampleRate, convert_midi_to_hz(),
+                               numPartialsPerDim, lengthRatio,
+                               membraneResonance, gainDbMax, gainDbSlope);
+  Excitation::setup(sampleRate, impulseAmplitude, impulseLengthMs);
   PitchGlide::setup(pitchGlideFactor, expFactor);
   MoogVcf::setup(sampleRate, convert_midi_to_hz(), filterResonance, "bp2");
 
@@ -35,18 +42,43 @@ void JungleDrum::setup(float sampleRate, int midiNote, float decayMax,
 
 void JungleDrum::setAttackTimeMs(float attackTimeMs) {
   resonanceEnvelope_.setAttackRate(0.001 * attackTimeMs *
-                                   RectangularMembrane::sampleRate_);
+                                   RectangularMembraneBq::sampleRate_);
 }
 
 void JungleDrum::setReleaseTimeMs(float releaseTimeMs) {
   resonanceEnvelope_.setReleaseRate(0.001 * releaseTimeMs *
-                                    RectangularMembrane::sampleRate_);
+                                    RectangularMembraneBq::sampleRate_);
 }
+
+void JungleDrum::setFilterResonanceMax(float filterResonance) {
+  filterResonanceMax_ = filterResonance;
+}
+
+float JungleDrum::getFilterResonanceMax() { return filterResonanceMax_; }
+
+void JungleDrum::setMembraneResonance(float resonance) {
+  RectangularMembraneBq::setResonance(resonance);
+}
+
+float JungleDrum::getMembraneResonance() {
+  return RectangularMembraneBq::getResonance();
+}
+
 int JungleDrum::getMidiNote() { return midiNote_; }
+
+// Delayed setters for Membrane shape
+void JungleDrum::setNumPartialsPerDim(int numPartialsPerDim) {
+  numPartialsPerDimNew_ = numPartialsPerDim;
+}
+void JungleDrum::setLengthRatio(float lengthRatio) {
+  lengthRatioNew_ = lengthRatio;
+}
 
 void JungleDrum::trigger() {
   Excitation::trigger();
   resonanceEnvelope_.gate(true);
+  RectangularMembraneBq::setNumPartialsPerDim(numPartialsPerDimNew_);
+  RectangularMembraneBq::setLengthRatio(lengthRatioNew_);
 }
 float JungleDrum::process() {
   // Get next input sample
@@ -55,17 +87,17 @@ float JungleDrum::process() {
   //   excitation amplitude)
   MoogVcf::setFrequencyHz(PitchGlide::applyPitchGlide(
       in / getAmplitude(), getFundamentalFrequencyHz()));
+  MoogVcf::setResonance(filterResonanceMax_ * resonanceEnvelope_.process());
+  float out = RectangularMembraneBq::process(in);
 
-  float out = RectangularMembrane::process(in);
-
-  out = tanhf_neon(out);
   out = MoogVcf::process(out);
+  // out = tanhf_neon(out);
 
   return out;
 }
 
 float JungleDrum::convert_midi_to_hz() {
-  return 440.0f * powf(2, (float)midiNote_ - 69.0f) / 12.0f;
+  return 440.0f * powf(2, (((float)midiNote_ - 69.0f) / 12.0f));
 }
 
 void JungleDrum::noteOn(int midiNote) {
