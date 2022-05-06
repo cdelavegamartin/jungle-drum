@@ -1,10 +1,9 @@
 // BiquadResonatorBank.h: header file for bank of Resonator objects
 #pragma once
 
-#include <libraries/Biquad/Biquad.h>
-
 #include <vector>
 
+#include "BiquadFloat.h"
 class BiquadResonatorBank {
  public:
   BiquadResonatorBank() {}  // Default constructor
