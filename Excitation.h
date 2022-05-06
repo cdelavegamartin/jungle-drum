@@ -7,17 +7,16 @@ class Excitation {
  public:
   // constructors
   Excitation() {}  // Default constructor
-  Excitation(float sampleRate, float lengthMs, float expCoeff);
+  Excitation(float sampleRate, float lengthMs);
 
   // Set parameters
-  void setup(float sampleRate, float lengthMs, float expCoeff);
+  void setup(float sampleRate, float lengthMs);
 
   void setLengthMs(float l);
   float getLengthMs();
   void setAmplitude(float amp);
   float getAmplitude();
-  void setExponentialCoefficient(float coeff);
-  float getExponentialCoefficient();
+  
 
   void trigger();
   float process();  // Process sample
@@ -29,8 +28,6 @@ class Excitation {
   float lengthMs_;
   float lengthMsNew_;
   int lengthSamples_;
-  float expCoeff_;
-  float expCoeffNew_;
   float amplitude_;
   float readPosition_;
   float step_;
