@@ -1,5 +1,7 @@
 // PitchGlide.h
 
+#pragma once
+
 class PitchGlide {
  public:
   // constructors
@@ -15,9 +17,6 @@ class PitchGlide {
   float getExpFactor();
   float applyPitchGlide(float in, float f);
 
-  
-
-
   ~PitchGlide() {}  // Destructor
 
  private:
@@ -26,6 +25,4 @@ class PitchGlide {
   float movingAvg_;
 
   void calculate_moving_avg_(float in);
-  
-  
 };
