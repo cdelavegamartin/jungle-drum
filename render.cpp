@@ -83,9 +83,9 @@ bool setup(BelaContext *context, void *userData) {
 
     gGuiController.addSlider("Midi Note", 33, 21, 69, 1);
 
-    gGuiController.addSlider("Num Partials per dim", 8, 1, 15, 1);
+    gGuiController.addSlider("Num Partials per dim", 10, 1, 15, 1);
     gGuiController.addSlider("Aspect Ratio Lx/Ly", 0.5, 0.0, 1.0, 0.01);
-    gGuiController.addSlider("Filterbank Resonance", 100.0, 30.0, 150.0, 1.0);
+    gGuiController.addSlider("Filterbank Resonance", 70.0, 30.0, 150.0, 1.0);
     gGuiController.addSlider("Partials gain Max (dB)", 50.0, 0.0, 80, 0.1);
     gGuiController.addSlider("Partials gain Slope(dB / octave) ", 5.0, 0.0,
                              10.0, 0.1);
@@ -93,16 +93,16 @@ bool setup(BelaContext *context, void *userData) {
     gGuiController.addSlider("Input Amplitude", 0.15, 0.0, 0.5, 0.001);
     gGuiController.addSlider("Input Length (ms)", 5.0, 0.0, 20, 0.05);
 
-    gGuiController.addSlider("Pitch Glide Amplitude", 1.0, 0.0, 2.0, 0.01);
-    gGuiController.addSlider("Pitch Glide Sharpness", 0.5, 0.0001, 1.0, 0.001);
+    gGuiController.addSlider("Pitch Glide Amplitude", 0.4, 0.0, 2.0, 0.01);
+    gGuiController.addSlider("Pitch Glide Sharpness", 0.75, 0.0001, 1.0, 0.001);
 
-    gGuiController.addSlider("VCF Resonance", 0.95, 0.7, 1.0, 0.01);
+    gGuiController.addSlider("VCF Resonance", 0.9, 0.7, 1.0, 0.01);
     gGuiController.addSlider("Attack time (ms)", 10.0, 0.0, 200.0, 0.5);
     gGuiController.addSlider("Release time (ms)", 500.0, 0.0, 1000.0, 0.5);
 
-    gGuiController.addSlider("Note off (ms)", 400, 10, 1000, 1.0);
+    gGuiController.addSlider("Note off (ms)", 300, 10, 1000, 1.0);
 
-    gGuiController.addSlider("Output Gain", 1.0, 0.0, 5.0, 0.1);
+    gGuiController.addSlider("Output Gain", 1.0, 0.0, 1.5, 0.1);
   }
   rt_printf("############ Finished Setup #####################\n");
   return true;
