@@ -74,12 +74,32 @@ void JungleDrum::setLengthRatio(float lengthRatio) {
   lengthRatioNew_ = lengthRatio;
 }
 
+void JungleDrum::setGainDbSlope(float gainDbSlope) {
+  gainDbSlopeNew_= gainDbSlope;
+}
+
+void JungleDrum::setPitchGlideMax(float pitchGlideMax) {
+  pitchGlideMaxNew_= pitchGlideMax;
+}
+
+void JungleDrum::setPitchGlideSharp(float pitchGlideSharp) {
+  pitchGlideSharpNew_= pitchGlideSharp;
+}
+
 void JungleDrum::trigger() {
   Excitation::trigger();
   resonanceEnvelope_.gate(true);
+
+  // Apply stored values to membrane
   RectangularMembraneBq::setNumPartialsPerDim(numPartialsPerDimNew_);
   RectangularMembraneBq::setLengthRatio(lengthRatioNew_);
+  RectangularMembraneBq::setGainDbSlope(gainDbSlopeNew_);
+  // Apply stored values to pitch glide
+  PitchGlide::setPitchGlideFactor(pitchGlideMaxNew_);
+  PitchGlide::setExpFactor(pitchGlideSharpNew_);
+
 }
+
 float JungleDrum::process() {
   // Get next input sample
   float in = Excitation::process();
@@ -107,3 +127,7 @@ void JungleDrum::noteOn(int midiNote) {
 }
 
 void JungleDrum::noteOff() { resonanceEnvelope_.gate(false); }
+
+void JungleDrum::reset(){
+  JungleDrum::setup(RectangularMembraneBq::sampleRate_);
+}

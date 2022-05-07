@@ -18,7 +18,7 @@ class JungleDrum : public RectangularMembraneBq,
              float lengthRatio = 0.5f, float membraneResonance = 100.0f,
              float gainDbMax = 30.0f, float gainDbSlope = 5.0f,
              float impulseAmplitude = 0.02f, float impulseLengthMs = 5.0f,
-             float pitchGlideFactor = 0.0f, float expFactor = 0.99f,
+             float pitchGlideFactor = 1.0f, float expFactor = 0.5f,
              float filterResonance = 0.9f, float attackTimeMs = 100.0f,
              float releaseTimeMs = 500.0f);
 
@@ -27,7 +27,7 @@ class JungleDrum : public RectangularMembraneBq,
              float lengthRatio = 0.5f, float membraneResonance = 100.0f,
              float gainDbMax = 30.0f, float gainDbSlope = 5.0f,
              float impulseAmplitude = 0.02f, float impulseLengthMs = 5.0f,
-             float pitchGlideFactor = 0.0f, float expFactor = 0.99f,
+             float pitchGlideFactor = 1.0f, float expFactor = 0.5f,
              float filterResonance = 0.9f, float attackTimeMs = 100.0f,
              float releaseTimeMs = 500.0f);
 
@@ -43,6 +43,11 @@ class JungleDrum : public RectangularMembraneBq,
   // Delayed setters for Membrane shape
   void setNumPartialsPerDim(int numPartialsPerDim);
   void setLengthRatio(float lengthRatio);
+  void setGainDbSlope(float gainDbSlope);
+
+  // Delayed setters for Pitch Glide
+  void setPitchGlideMax(float pitchGlideMax);
+  void setPitchGlideSharp(float pitchGlideSharp);
 
   // Disambiguate resonance accesors
   void setMembraneResonance(float resonance);
@@ -54,6 +59,8 @@ class JungleDrum : public RectangularMembraneBq,
   // midinote accesors
   int getMidiNote();
 
+  void reset();
+
   ~JungleDrum() {}  // Destructor
 
  private:
@@ -62,6 +69,9 @@ class JungleDrum : public RectangularMembraneBq,
   float filterResonanceMax_;
   int numPartialsPerDimNew_;
   float lengthRatioNew_;
+  float pitchGlideMaxNew_;
+  float pitchGlideSharpNew_;
+  float gainDbSlopeNew_;
   // float outAmplitude_;
   float convert_midi_to_hz();
 };
