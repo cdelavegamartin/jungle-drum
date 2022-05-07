@@ -3,6 +3,7 @@ build/
 
 #VSCode configs
 .vscode/
+.clang-format
 
 # Executable
 jungle-drum
