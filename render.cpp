@@ -15,7 +15,7 @@ JungleDrum gDrum;
 bool gController = 0;
 
 // Printing?
-bool gPrint = 1;
+bool gPrint = 0;
 
 ////////// GUI ////////////////
 // Browser-based GUI to adjust parameters
@@ -48,18 +48,12 @@ enum gMidiControls {
   VCFREL
 };
 
-// List of active notes for midi
-const int kMaxNotes = 16;
-int gActiveNotes[kMaxNotes];
-int gActiveNoteCount = 0;
-
 // Setup
 bool setup(BelaContext *context, void *userData) {
-  rt_printf("############ Start setup #####################\n");
-
   gDrum.setup(context->audioSampleRate);
 
-  if (gController) {  // Initialise the MIDI device
+  if (gController) {
+    // Initialise the MIDI device
     if (gMidi.readFrom(gMidiPort0) < 0) {
       rt_printf("Unable to read from MIDI port %s\n", gMidiPort0);
       return false;
@@ -104,7 +98,6 @@ bool setup(BelaContext *context, void *userData) {
 
     gGuiController.addSlider("Output Gain", 1.0, 0.0, 1.5, 0.1);
   }
-  rt_printf("############ Finished Setup #####################\n");
   return true;
 }
 
