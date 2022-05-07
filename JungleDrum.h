@@ -1,4 +1,4 @@
-// JungleDrum.h: header file
+// JungleDrum.h: header file for the KickDrum/bass synth hybrid
 #pragma once
 #include <libraries/ADSR/ADSR.h>
 
@@ -31,10 +31,10 @@ class JungleDrum : public RectangularMembraneBq,
              float filterResonance = 0.9f, float attackTimeMs = 100.0f,
              float releaseTimeMs = 500.0f);
 
-  void trigger();   // Trigger new note
+  void trigger();   // Trigger parameter readds for new note and envelope
   float process();  // Process sample
-  void noteOn(int midiNote);
-  void noteOff();
+  void noteOn(int midiNote);  // start new note
+  void noteOff();             // Stop currently playing note
 
   // resonance envelope accesors
   void setAttackTimeMs(float attackTimeMs);
@@ -59,6 +59,7 @@ class JungleDrum : public RectangularMembraneBq,
   // midinote accesors
   int getMidiNote();
 
+  // Reruns setup,
   void reset();
 
   ~JungleDrum() {}  // Destructor
@@ -72,6 +73,5 @@ class JungleDrum : public RectangularMembraneBq,
   float pitchGlideMaxNew_;
   float pitchGlideSharpNew_;
   float gainDbSlopeNew_;
-  // float outAmplitude_;
   float convert_midi_to_hz();
 };

@@ -12,7 +12,7 @@ void Excitation::setup(float sampleRate, float amplitude, float lengthMs) {
   amplitude_ = amplitude;
   trigger();
 }
-
+// Accesors
 void Excitation::setLengthMs(float l) { lengthMsNew_ = l; }
 
 float Excitation::getLengthMs() { return lengthMs_; }
@@ -21,20 +21,21 @@ void Excitation::setAmplitude(float amp) { amplitude_ = amp; }
 
 float Excitation::getAmplitude() { return amplitude_; }
 
+// Helper function
 void Excitation::calculate_internal_parameters_() {
   lengthSamples_ = (int)(0.001 * lengthMs_ * sampleRate_);
   step_ = 1.0f / (float)(lengthSamples_);
   readPosition_ = 0.0;
 }
-
+// Triggers the object, reading the new parameters and resetting the index
 void Excitation::trigger() {
   lengthMs_ = lengthMsNew_;
   calculate_internal_parameters_();
-  reset_read_pos_();
+  readPosition_ = 0.0;
 }
 
-void Excitation::reset_read_pos_() { readPosition_ = 0.0; }
-
+// Output is a raised cosine, the length of the impulse can be used to change
+// the frequency content
 float Excitation::process() {
   float out = 0.0;
   if (readPosition_ < 1.0) {

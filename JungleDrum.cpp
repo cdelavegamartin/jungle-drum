@@ -24,8 +24,12 @@ void JungleDrum::setup(float sampleRate, int midiNote, int numPartialsPerDim,
                        float pitchGlideFactor, float expFactor,
                        float filterResonance, float attackTimeMs,
                        float releaseTimeMs) {
+  
+  // Internal variables
   midiNote_ = midiNote;
   filterResonanceMax_ = filterResonance;
+
+  // Setup parent classes
   RectangularMembraneBq::setup(sampleRate, convert_midi_to_hz(),
                                numPartialsPerDim, lengthRatio,
                                membraneResonance, gainDbMax, gainDbSlope);
@@ -33,6 +37,7 @@ void JungleDrum::setup(float sampleRate, int midiNote, int numPartialsPerDim,
   PitchGlide::setup(pitchGlideFactor, expFactor);
   MoogVcf::setup(sampleRate, convert_midi_to_hz(), filterResonance, "bp2");
 
+  // Setup envelope
   setAttackTimeMs(attackTimeMs);
   setReleaseTimeMs(releaseTimeMs);
   resonanceEnvelope_.setDecayRate(0.0f);
@@ -40,6 +45,7 @@ void JungleDrum::setup(float sampleRate, int midiNote, int numPartialsPerDim,
   resonanceEnvelope_.setTargetRatioDR(100.0f);
 }
 
+// Envelope parameters accesors
 void JungleDrum::setAttackTimeMs(float attackTimeMs) {
   resonanceEnvelope_.setAttackRate(0.001 * attackTimeMs *
                                    RectangularMembraneBq::sampleRate_);
@@ -50,6 +56,7 @@ void JungleDrum::setReleaseTimeMs(float releaseTimeMs) {
                                     RectangularMembraneBq::sampleRate_);
 }
 
+// Setters for the two resonances, disambiguated
 void JungleDrum::setFilterResonanceMax(float filterResonance) {
   filterResonanceMax_ = filterResonance;
 }
@@ -75,15 +82,16 @@ void JungleDrum::setLengthRatio(float lengthRatio) {
 }
 
 void JungleDrum::setGainDbSlope(float gainDbSlope) {
-  gainDbSlopeNew_= gainDbSlope;
+  gainDbSlopeNew_ = gainDbSlope;
 }
 
+// Delayed setters for the pitch glide object
 void JungleDrum::setPitchGlideMax(float pitchGlideMax) {
-  pitchGlideMaxNew_= pitchGlideMax;
+  pitchGlideMaxNew_ = pitchGlideMax;
 }
 
 void JungleDrum::setPitchGlideSharp(float pitchGlideSharp) {
-  pitchGlideSharpNew_= pitchGlideSharp;
+  pitchGlideSharpNew_ = pitchGlideSharp;
 }
 
 void JungleDrum::trigger() {
@@ -97,7 +105,6 @@ void JungleDrum::trigger() {
   // Apply stored values to pitch glide
   PitchGlide::setPitchGlideFactor(pitchGlideMaxNew_);
   PitchGlide::setExpFactor(pitchGlideSharpNew_);
-
 }
 
 float JungleDrum::process() {
@@ -116,6 +123,7 @@ float JungleDrum::process() {
   return out;
 }
 
+// Helper function to convert midi input
 float JungleDrum::convert_midi_to_hz() {
   return 440.0f * powf(2, (((float)midiNote_ - 69.0f) / 12.0f));
 }
@@ -128,6 +136,6 @@ void JungleDrum::noteOn(int midiNote) {
 
 void JungleDrum::noteOff() { resonanceEnvelope_.gate(false); }
 
-void JungleDrum::reset(){
+void JungleDrum::reset() {
   JungleDrum::setup(RectangularMembraneBq::sampleRate_);
 }

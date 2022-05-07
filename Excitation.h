@@ -1,3 +1,5 @@
+// Excitation.h: Header file for the raised cosine excitation, its parameters
+// are the length and amplitude
 #pragma once
 
 #include <vector>
@@ -31,5 +33,4 @@ class Excitation {
   float step_;
 
   void calculate_internal_parameters_();
-  void reset_read_pos_();
 };
