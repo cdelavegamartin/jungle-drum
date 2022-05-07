@@ -1,13 +1,13 @@
 // BiquadResonatorBank.cpp: file for implementing a 2nd Order resonating IIR
-// filter
+// filter bank. Uses biquad filters in bandpass configuration. The number of
+// resonators in the filter bank is determined by the number of frequencies
+// givento it. The other parameters are adjusted to that size
 
 #include "BiquadResonatorBank.h"
 
-#include <cmath>
-// #include <iostream>
-// #include <algorithm>
-#include <vector>
 #include <libraries/math_neon/math_neon.h>
+
+#include <vector>
 
 // Constructor taking arguments for sample rate and table data
 BiquadResonatorBank::BiquadResonatorBank(
@@ -26,8 +26,12 @@ void BiquadResonatorBank::setup(const float sampleRate,
                                 const std::vector<float>& resonances,
                                 const std::vector<float>& gainsDb) {
   sampleRate_ = sampleRate;
+
+  // Common settings
   settings_.fs = sampleRate_;
   settings_.type = Biquad::peak;
+
+  // Set parameters
   setFrequenciesHz(frequenciesHz);
   setResonances(resonances);
   setGainsDb(gainsDb);
@@ -38,8 +42,12 @@ void BiquadResonatorBank::setup(const float sampleRate,
                                 const float resonance,
                                 const std::vector<float>& gainsDb) {
   sampleRate_ = sampleRate;
+
+  // Common settings
   settings_.fs = sampleRate_;
   settings_.type = Biquad::peak;
+
+  // Set parameters
   setFrequenciesHz(frequenciesHz);
   setResonances(resonance);
   setGainsDb(gainsDb);
@@ -49,8 +57,12 @@ void BiquadResonatorBank::setup(const float sampleRate,
                                 const std::vector<float>& frequenciesHz,
                                 const float resonance, const float gainDb) {
   sampleRate_ = sampleRate;
+
+  // Common settings
   settings_.fs = sampleRate_;
   settings_.type = Biquad::peak;
+
+  // Set parameters
   setFrequenciesHz(frequenciesHz);
   setResonances(resonance);
   setGainsDb(gainDb);
@@ -72,9 +84,10 @@ std::vector<float> BiquadResonatorBank::getFrequenciesHz() {
   return frequenciesHz_;
 }
 
-// Set the BiquadResonatorBank decays
+// Set the BiquadResonatorBank Q factors
 void BiquadResonatorBank::setResonances(const std::vector<float>& resonances) {
   resonances_ = resonances;
+  // Use the last resonance given to fill missing ones
   if (resonances_.size() != nResonators_) {
     resonances_.resize(nResonators_, resonances_.back());
   }
@@ -83,7 +96,7 @@ void BiquadResonatorBank::setResonances(const std::vector<float>& resonances) {
   }
 }
 
-// Overloaded function with just a float
+// Overload function with just a single Q factor
 void BiquadResonatorBank::setResonances(const float resonance) {
   if (resonances_.size() != nResonators_) {
     resonances_.resize(nResonators_, resonance);
@@ -94,9 +107,10 @@ void BiquadResonatorBank::setResonances(const float resonance) {
   }
 }
 
-// Get the BiquadResonatorBank decays
+// Get the BiquadResonatorBank Q factors
 std::vector<float> BiquadResonatorBank::getResonances() { return resonances_; }
 
+// Set the BiquadResonatorBank gains
 void BiquadResonatorBank::setGainsDb(const std::vector<float>& gainsDb) {
   gainsDb_ = gainsDb;
   if (gainsDb_.size() != nResonators_) {
@@ -107,6 +121,7 @@ void BiquadResonatorBank::setGainsDb(const std::vector<float>& gainsDb) {
   }
 }
 
+// Set the BiquadResonatorBank gains with asingle value
 void BiquadResonatorBank::setGainsDb(const float gainDb) {
   if (gainsDb_.size() != nResonators_) {
     gainsDb_.resize(nResonators_, gainDb);
@@ -117,8 +132,10 @@ void BiquadResonatorBank::setGainsDb(const float gainDb) {
   }
 }
 
+// Get the BiquadResonatorBank gains
 std::vector<float> BiquadResonatorBank::getGainsDb() { return gainsDb_; }
 
+// Get size of filter bank
 std::vector<Biquad>::size_type BiquadResonatorBank::getSize() {
   return nResonators_;
 }
@@ -130,6 +147,9 @@ float BiquadResonatorBank::process(const float in) {
   for (int i = 0; i < nResonators_; i++) {
     out += resonators_[i].process(in);
   }
+  // Normalize output using the fast sqrtf_c for performance
+  // Lower precision means there is some variability, not completely
+  // undesirable
   out /= sqrtf_c((float)nResonators_);
   return out;
 }

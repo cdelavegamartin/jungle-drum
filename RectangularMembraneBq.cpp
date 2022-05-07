@@ -3,7 +3,6 @@
 
 #include <libraries/math_neon/math_neon.h>
 
-// #include <algorithm>
 #include <cmath>
 #include <vector>
 
@@ -20,6 +19,7 @@ void RectangularMembraneBq::setup(float sampleRate,
                                   int numPartialsPerDim, float lengthRatio,
                                   float resonance, float gainDbMax,
                                   float gainDbSlope) {
+  // Set internal parameters
   sampleRate_ = sampleRate;
   fundamentalFrequencyHz_ = fundamentalFrequencyHz;
   numPartialsPerDim_ = numPartialsPerDim;
@@ -28,10 +28,12 @@ void RectangularMembraneBq::setup(float sampleRate,
   gainDbMax_ = gainDbMax;
   gainDbSlope_ = gainDbSlope;
 
+  // calculate auxiliary vectors
   normFrequencies_ =
       calculate_normalized_frequencies_(numPartialsPerDim_, lengthRatio_);
   update_log2frequencies_();
 
+  // Setup the resonator bank
   BiquadResonatorBank::setup(
       sampleRate_,
       calculate_frequencies_(fundamentalFrequencyHz_, normFrequencies_),
@@ -50,7 +52,7 @@ std::vector<float> RectangularMembraneBq::calculate_normalized_frequencies_(
 
   for (int i = 0; i < numParDim; i++) {
     for (int j = 0; j < numParDim; j++) {
-      normFreqs[i * numParDim + j] = sqrtf_neon(
+      normFreqs[i * numParDim + j] = sqrtf_c(
           C * ((float)((i + 1) * (i + 1)) + r2 * (float)((j + 1) * (j + 1))));
     }
   }

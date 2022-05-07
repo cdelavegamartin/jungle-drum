@@ -12,10 +12,11 @@ class BiquadResonatorBank {
                       const std::vector<float>& frequenciesHz,
                       const std::vector<float>& resonances,
                       const std::vector<float>& gainsDb);
-
+  // Minimal constructor
   BiquadResonatorBank(const float sampleRate,
                       const std::vector<float>& frequenciesHz);
 
+  // Overloaded setup function
   void setup(const float sampleRate, const std::vector<float>& frequencies,
              const std::vector<float>& resonances,
              const std::vector<float>& gainsDb);
@@ -26,6 +27,7 @@ class BiquadResonatorBank {
   void setup(const float sampleRate, const std::vector<float>& frequencies,
              const float resonance = 100.0, const float gainDb = 50.0);
 
+  // Accesors
   void setFrequenciesHz(const std::vector<float>& fs);
   std::vector<float> getFrequenciesHz();
 
@@ -42,14 +44,18 @@ class BiquadResonatorBank {
   float process(float in);  // Process sample
 
   ~BiquadResonatorBank() {}  // Destructor
+
  protected:
-  float sampleRate_;                            // audio sample rate
+  float sampleRate_;  // audio sample rate
+
+  // Not private in order to modify them directly in child classes for
+  // efficiency
   std::vector<Biquad>::size_type nResonators_;  // number of resonators
-  std::vector<float> frequenciesHz_;  // Frequency of the BiquadResonatorBank
-  std::vector<float> resonances_;     // Decay of the BiquadResonatorBank
-  std::vector<float> gainsDb_;        // Decay of the BiquadResonatorBank
+  std::vector<float> frequenciesHz_;  // Frequencies of the resonantors
+  std::vector<float> resonances_;     // Q factor of the resonators
+  std::vector<float> gainsDb_;        // Gains of the resonators
 
  private:
-  std::vector<Biquad> resonators_;
-  Biquad::Settings settings_;
+  std::vector<Biquad> resonators_; // Vector of resonators
+  Biquad::Settings settings_; // Settings for the setup of resonators
 };
