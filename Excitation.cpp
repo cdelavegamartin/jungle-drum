@@ -40,7 +40,7 @@ float Excitation::process() {
   float out = 0.0;
   if (readPosition_ < 1.0) {
     out = amplitude_ * 0.5f *
-          (1.0f + cosf((float)M_PI * (2.0f * readPosition_ - 1.0f)));
+          (1.0f + cosf((float)M_PI * (readPosition_ - 0.5f)));
 
     readPosition_ += step_;
   }
